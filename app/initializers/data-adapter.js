@@ -1,1 +1,0 @@
-export * from 'solid-addon/intializers/data-adapter'; 

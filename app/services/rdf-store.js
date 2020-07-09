@@ -1,0 +1,1 @@
+export * from 'solid-addon/services/rdf-store';

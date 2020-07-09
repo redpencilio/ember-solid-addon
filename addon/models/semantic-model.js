@@ -4,7 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import { get, set } from '@ember/object';
 import { XSD, RDF, SOLID } from '../utils/namespaces';
 import rdflib from 'ember-rdflib';
-import env from '../config/environment';
+// import env from '../config/environment';
 
 const { Statement } = rdflib;
 
@@ -281,7 +281,7 @@ class SemanticModel {
     console.log(...arguments);
   }
 
-  @service(env.RSTORE.name) store;
+  @service("store") store;
 
   constructor( uri, options = {} ){
     const store = options.store;

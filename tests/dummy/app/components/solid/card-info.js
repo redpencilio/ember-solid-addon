@@ -8,8 +8,8 @@ import env from '../../config/environment';
 const { Fetcher, namedNode } = rdflib;
 
 export default class SolidCardInfoComponent extends Component {
-  @service("solid-addon/services/auth") auth;
-  @service("solid-addon/store") store;
+  @service("auth") auth;
+  @service("store") store;
 
   @tracked
   me = null;

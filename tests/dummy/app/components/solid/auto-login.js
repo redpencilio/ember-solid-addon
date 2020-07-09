@@ -3,7 +3,7 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 
 export default class SolidAutoLoginComponent extends Component {
-  @service("solid-addon/services/auth") auth;
+  @service auth;
 
   constructor(){
     super(...arguments);

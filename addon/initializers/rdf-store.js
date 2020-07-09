@@ -2,7 +2,7 @@ import Service from '@ember/service';
 import rdflib from 'ember-rdflib';
 import { getOwner, setOwner } from '@ember/application';
 import { RDF, SOLID } from '../utils/namespaces';
-import env from '../config/environment';
+// import env from '../../config/environment';
 import ForkableStore from '../utils/forking-store';
 
 const { namedNode } = rdflib;
@@ -184,7 +184,7 @@ class StoreService extends Service {
 }
 
 export function initialize( application ) {
-  application.register(`service:${env.RSTORE.name}`, StoreService, { singleton: true, instantiate: true });
+  application.register(`service:store`, StoreService, { singleton: true, instantiate: true });
 }
 
 export default {

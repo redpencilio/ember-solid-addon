@@ -9,7 +9,7 @@ const { Fetcher, namedNode } = rdflib;
 
 export default class SolidCardInfoComponent extends Component {
   @service("solid-addon/services/auth") auth;
-  @service(env.RSTORE.name) store;
+  @service("solid-addon/store") store;
 
   @tracked
   me = null;
@@ -31,6 +31,6 @@ export default class SolidCardInfoComponent extends Component {
   @action
   saveUser(event){
     event.preventDefault();
-    this.store.persist();
+    this.store.persist;
   }
 }

@@ -3,7 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
 import auth from "solid-auth-client";
 import rdflib from 'ember-rdflib';
-import { SOLID } from '../../utils/namespaces';
+import { SOLID } from '../utils/namespaces';
 
 const { sym } = rdflib;
 

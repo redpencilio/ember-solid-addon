@@ -1,1 +1,1 @@
-export * from 'solid-addon/adapters/data-adapter'; 
+export * from 'solid-addon/adapters/data-adapter'

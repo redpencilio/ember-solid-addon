@@ -1,8 +1,1 @@
-export function initialize( application ) {
-    application.registerOptionsForType('model', { singleton: true, instantiate: false });
-  }
-  
-export default {
-initialize
-};
-  
+export { default, initialize } from 'solid-addon/initializers/setup-container';

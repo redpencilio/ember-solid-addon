@@ -1,5 +1,5 @@
-export function initialize(/* application */) {
-  // application.inject('route', 'foo', 'service:foo');
+export function initialize( application ) {
+  application.registerOptionsForType('model', { singleton: true, instantiate: false });
 }
 
 export default {

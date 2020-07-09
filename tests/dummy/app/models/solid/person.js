@@ -1,3 +1,7 @@
+import { VCARD, FOAF, LDP, SP, SOLID } from 'solid-addon/utils/namespaces';
+import SemanticModel, { property, string, integer, term } from 'solid-addon/models/semantic-model';
+
+
 export default class SolidPersonModel extends SemanticModel {
     defaultNamespace = VCARD;
   

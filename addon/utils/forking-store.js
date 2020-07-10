@@ -168,12 +168,12 @@ export default class ForkingStore {
 
   removeStatements( deletes ) {
     for( const del of deletes ) {
-      this.graph.add( statementInGraph( del, delGraphFor( del.graph ) ) );
       try {
         this.graph.remove( statementInGraph( del, addGraphFor( del.graph ) ) );
-        this.graph.remove(statementInGraph(del, delGraphFor(del.graph)))
       } catch (e) {
         // this is okay!  the statement may not exist
+        this.graph.add( statementInGraph( del, delGraphFor( del.graph ) ) );
+
       }
     }
     informObservers( { deletes }, this );

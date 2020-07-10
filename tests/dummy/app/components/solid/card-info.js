@@ -11,6 +11,10 @@ export default class SolidCardInfoComponent extends Component {
   @service  auth;
   @service("rdf-store") store;
 
+  constructor(){
+    super(...arguments);
+    this.fetchVcard();
+  }
   
 
   @tracked
@@ -18,6 +22,8 @@ export default class SolidCardInfoComponent extends Component {
 
   @action
   async fetchVcard(){
+    await this.auth.ensureLogin();
+    await this.auth.ensureTypeIndex();
     const graph = this.store.store.graph;
     const me = graph.sym( this.auth.webId );
     console.log(me);

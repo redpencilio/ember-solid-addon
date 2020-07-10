@@ -257,6 +257,8 @@ export default class ForkingStore {
           .match( null, null, null, addGraphFor( graph ) )
           .map( (statement) => statementInGraph( statement, graph ) );
 
+    console.log(deletes);
+
     try {
       await this.update( deletes, inserts );
     } finally {

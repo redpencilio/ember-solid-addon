@@ -281,7 +281,7 @@ class SemanticModel {
     console.log(...arguments);
   }
 
-  @service("store") store;
+  @service("rdf-store") store;
 
   constructor( uri, options = {} ){
     const store = options.store;

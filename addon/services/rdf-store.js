@@ -65,14 +65,17 @@ export default class StoreService extends Service {
     const createOptions = Object.assign({}, options);
     createOptions.store = this;
     createOptions.modelName = model;
+    console.log(createOptions)
     const instance = new klass( uri, createOptions );
+    console.log(instance);
     setOwner( instance, owner );
     this.storeCacheForModel( model ).push( instance );
 
     // notify listeners
+    console.log(instance)
+
     for (let listener of this.changeListeners)
       window.setTimeout( () => listener( model, instance ), 0 );
-
     return instance;
   }
 

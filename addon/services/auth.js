@@ -11,7 +11,7 @@ export default class AuthService extends Service {
     @tracked
     session = null;
   
-    @service
+    @service("rdf-store")
     store;
   
     async ensureLogin(){
@@ -45,3 +45,5 @@ export default class AuthService extends Service {
       return this.session ? this.session.webId : undefined;
     }
   }
+
+  

@@ -1,1 +1,1 @@
-export * from 'solid-addon/services/rdf-store';
+export { default } from 'solid-addon/services/rdf-store';

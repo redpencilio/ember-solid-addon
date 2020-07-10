@@ -8,8 +8,8 @@ import env from '../../config/environment';
 const { Fetcher, namedNode } = rdflib;
 
 export default class SolidCardInfoComponent extends Component {
-  @service auth;
-  @service("store") store;
+  @service  auth;
+  @service("rdf-store") store;
 
   @tracked
   me = null;
@@ -18,7 +18,7 @@ export default class SolidCardInfoComponent extends Component {
   async fetchVcard(){
     const graph = this.store.store.graph;
     const me = graph.sym( this.auth.webId );
-
+    console.log(me);
     const fetcher = new Fetcher( graph );
     console.log( await fetcher.load( me ) );
     console.log(graph);

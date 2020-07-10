@@ -29,7 +29,7 @@ function findTypeRegistrationInGraph( type, store, typeGraph ) {
     .find( (x) => x );
 }
 
-class StoreService extends Service {
+export default class StoreService extends Service {
   store = null;
 
   storeCache = {}
@@ -183,11 +183,11 @@ class StoreService extends Service {
   }
 }
 
-export function initialize( application ) {
-  application.register(`service:store`, StoreService, { singleton: true, instantiate: true });
-}
+// export function initialize( application ) {
+//   application.register(`service:store`, StoreService, { singleton: true, instantiate: true });
+// }
 
-export default {
-  initialize,
-  name: "rdf-store",
-};
+// export default {
+//   initialize,
+//   name: "rdf-store",
+// };

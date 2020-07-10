@@ -1,1 +1,1 @@
-export * from 'solid-addon/services/auth'
+export { default } from 'solid-addon/services/auth';

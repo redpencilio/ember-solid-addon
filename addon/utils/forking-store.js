@@ -157,6 +157,7 @@ export default class ForkingStore {
     for( const ins of inserts ) {
       this.graph.add( statementInGraph( ins, addGraphFor( ins.graph ) ) );
       try {
+        console.log(statementInGraph(ins, delGraphFor(ins.graph)));
         this.graph.remove( statementInGraph( ins, delGraphFor( ins.graph ) ) );
       } catch (e) {
         // this is okay!  the statement may not exist
@@ -170,6 +171,7 @@ export default class ForkingStore {
       this.graph.add( statementInGraph( del, delGraphFor( del.graph ) ) );
       try {
         this.graph.remove( statementInGraph( del, addGraphFor( del.graph ) ) );
+        this.graph.remove(statementInGraph(del, delGraphFor(del.graph)))
       } catch (e) {
         // this is okay!  the statement may not exist
       }
@@ -281,6 +283,7 @@ export default class ForkingStore {
    * private
    */
   update( deletes, inserts ) {
+    console.log(deletes);
     return new Promise( ( resolve, reject ) =>  {
       this.updater.update(
         deletes, inserts,

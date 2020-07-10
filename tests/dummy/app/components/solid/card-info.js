@@ -11,6 +11,8 @@ export default class SolidCardInfoComponent extends Component {
   @service  auth;
   @service("rdf-store") store;
 
+  
+
   @tracked
   me = null;
 

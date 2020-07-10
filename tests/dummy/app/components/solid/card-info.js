@@ -33,6 +33,7 @@ export default class SolidCardInfoComponent extends Component {
   @action
   saveUser(event){
     event.preventDefault();
-    this.store.persist;
+    console.log("save");
+    this.store.persist();
   }
 }

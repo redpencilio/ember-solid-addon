@@ -165,6 +165,8 @@ function property(options = {}) {
         const setRelationObject = function( object ) {
           const del = this.store.match( this.uri, predicate, undefined, graph );
           const ins = [ new Statement( this.uri, predicate, object, graph ) ];
+          console.log(del);
+          console.log(ins);
           changeGraphTriples( this, del, ins )
             .then( (uri, message, response) => console.log(`Success updating: ${message}`) )
             .catch( (message, uri, response) => sendAlert(message, { uri, message, response }) );

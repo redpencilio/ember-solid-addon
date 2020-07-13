@@ -1,0 +1,37 @@
+{{this.auth.webId}}
+
+{{#if this.auth.webId}}
+  <button type="button" {{on "click" this.fetchVcard}}>Fetch vcard</button>
+{{else}}
+  WebId not available, waiting for login.
+{{/if}}
+
+<div>
+  <form {{on "submit" this.saveUser}}>
+    <label for="name">name</label>
+    <Input id="name" @value={{this.me.name}}/>
+    <br>
+    <label for="formattedName">formattedName</label>
+    <Input id="formattedName" @value={{this.me.formattedName}}/>
+    <br>
+    <label for="organizationName">organizationName</label>
+    <Input id="organizationName" @value={{this.me.organizationName}}/>
+    <br>
+    <label for="inbox">inbox</label>
+    <Input id="inbox" @value={{this.me.inbox}}/>
+    <br>
+    <label for="storage">storage</label>
+    <Input id="storage" @value={{this.me.storage}}/>
+    <br>
+    <label for="account">account</label>
+    <Input id="account" @value={{this.me.account}}/>
+    <br>
+    <label for="privateTypeIndex">privateTypeIndex</label>
+    <Input id="privateTypeIndex" @value={{this.me.privateTypeIndex}}/>
+    <br>
+    <label for="publicTypeIndex">publicTypeIndex</label>
+    <Input id="publicTypeIndex" @value={{this.me.publicTypeIndex}}/>
+    <br>
+    <button type="submit">Update Profile</button>
+  </form>
+</div>

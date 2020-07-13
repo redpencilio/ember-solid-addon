@@ -1,0 +1,1 @@
+export { default } from 'solid-addon/adapters/data-adapter'

@@ -5,7 +5,7 @@ import { getOwner } from '@ember/application';
 
 
 export default class SolidAutoLoginComponent extends Component {
-  @service auth;
+  @service("solid-auth") auth;
 
   constructor(){
     super(...arguments);

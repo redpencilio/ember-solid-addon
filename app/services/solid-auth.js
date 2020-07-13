@@ -1,0 +1,1 @@
+export { default } from 'solid-addon/services/solid-auth';

@@ -29,6 +29,7 @@
     "ember-cli-htmlbars": "^5.1.2",
     "solid-auth-client": "^2.4.1",
     "ember-auto-import": "^1.6.0",
+    "ember-rdflib": "0.0.4",
     "@glimmer/tracking": "^1.0.0"
   },
   "devDependencies": {

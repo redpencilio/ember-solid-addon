@@ -14,7 +14,7 @@ export default class AuthService extends Service {
     @service("rdf-store")
     store;
   
-    async ensureLogin(){
+    async ensureLogin(identityProvider = "https://solid.community"){
       let session = await auth.currentSession();
       if( session ) {
         this.session = session;

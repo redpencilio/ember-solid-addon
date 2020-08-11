@@ -19,7 +19,6 @@ export default class AuthService extends Service {
       if( session ) {
         this.session = session;
       } else {
-        const identityProvider = "https://solid.community";
         auth.login(identityProvider);
       }
     }

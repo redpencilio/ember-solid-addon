@@ -7,10 +7,25 @@ import ForkableStore from '../utils/forking-store';
 
 const { namedNode } = rdflib;
 
+/**
+ * 
+ * Looks up a model-class
+ * 
+ * @param owner The ember owner
+ * @param {String} model Name of the model to lookup
+ */
 function classForModel( owner, model ) {
   return owner.lookup( `model:${model}` );
 }
 
+/**
+ * 
+ * Queries a typeGraph in a local Forkingstore for a type
+ * 
+ * @param {NamedNode} type The type to search
+ * @param {ForkingStore} store The store to query
+ * @param {NamedNode} typeGraph The type-graph
+ */
 function findTypeRegistrationInGraph( type, store, typeGraph ) {
   return store
     .match( undefined, RDF("type"), SOLID("TypeRegistration"), typeGraph )
@@ -29,6 +44,19 @@ function findTypeRegistrationInGraph( type, store, typeGraph ) {
     .find( (x) => x );
 }
 
+/**
+ * 
+ * Ember service that communicates with a Forking-store to query and send data from/to a Solid pod
+ * 
+ * @class StoreService
+ * 
+ * @property {ForkingStore} store The forking store to query
+ * @property {Object} storeCache Local cache of triples
+ * @property {Set} changeListeners
+ * @property {NamedNode} privateTypeIndex The private type index node of the solid pod
+ * @property {NamedNode} publicTypeIndex The public type index node of the solid pod
+ * @property {NamedNode} me The node representing the me-subject of the solid pod
+ */
 export default class StoreService extends Service {
   store = null;
 
@@ -54,6 +82,16 @@ export default class StoreService extends Service {
   async update(deletes, inserts) { return await this.store.update( deletes, inserts ); }
   async persist() { return await this.store.persist(); }
 
+  /**
+   * 
+   * Creates an instance of a model with a specific uri and saves it in the cache
+   * 
+   * @param {String} model Model to create an instance of
+   * @param {String} uri Uri of the resource
+   * @param {Object} options Options
+   * 
+   * @method
+   */
   create( model, uri, options ) {
     // check the cache
     const peekedInstance = this.peekInstance( model, uri );
@@ -79,10 +117,27 @@ export default class StoreService extends Service {
     return instance;
   }
 
+  /**
+   * 
+   * Returns the cache for a specific model
+   * 
+   * @param {String} model The given model
+   * 
+   * @method
+   */
   storeCacheForModel( model ) {
     return this.storeCache[model] || (this.storeCache[model] = []);
   }
 
+  /**
+   * 
+   * Search the cache for an instance of a model
+   * 
+   * @param {String} model The model
+   * @param {String} uri The uri of the instance
+   * 
+   * @method
+   */
   peekInstance( model, uri ) {
     if( !uri )
       uri = model;
@@ -103,6 +158,15 @@ export default class StoreService extends Service {
     }
   }
 
+  /**
+   * 
+   * Returns all instances of a model (type)
+   * 
+   * @param {String} model The given model
+   * @param {Object} options options
+   * 
+   * @method
+   */
   all( model, options ) {
     // TODO: options should have the option to yield a live array.
     // Use a weak map to find which maps to update.
@@ -121,6 +185,14 @@ export default class StoreService extends Service {
     return classForModel( getOwner( this ), model );
   }
 
+  /**
+   * 
+   * Fetches the graph for a specific model (type)
+   * 
+   * @param {String} model The given model
+   * 
+   * @method
+   */
   async fetchGraphForType( model ) {
     const klass = classForModel( getOwner( this ), model );
     if( !klass.rdfType )
@@ -136,6 +208,12 @@ export default class StoreService extends Service {
     }
   }
 
+  /**
+   * 
+   * Returns the graph of a model (type)
+   * 
+   * @param constructor Constructor of a model
+   */
   discoverDefaultGraphByType( constructor ) {
     let discoveredSolidGraph = null;
 
@@ -164,9 +242,25 @@ export default class StoreService extends Service {
   }
 
   autosaveForType = {};
+  /**
+   * 
+   * Set whether a type needs to be autosaved or not
+   * 
+   * @param {String} type The type to check
+   * @param {Boolean} autosave 
+   * @method setAutosaveForType
+   */
   setAutosaveForType(type, autosave) {
     this.autosaveForType[type] = autosave;
   }
+
+  /**
+   * 
+   * Check if a resource type needs to be autosaved
+   * 
+   * @param {String} type The type to check
+   * @method getAutosaveForType
+   */
   getAutosaveForType(type) {
     const autosave = this.autosaveForType[type];
 

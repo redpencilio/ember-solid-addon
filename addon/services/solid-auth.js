@@ -7,6 +7,15 @@ import { SOLID } from '../utils/namespaces';
 
 const { sym } = rdflib;
 
+/**
+ * 
+ * Ember service used to log-in with solid and fetch profile-info and type-indexes
+ * 
+ * @class AuthService
+ * 
+ * @property {Session} session A solid session
+ * @property {StoreService} store Rdf-store used to query data from solid
+ */
 export default class AuthService extends Service {
     @tracked
     session = null;
@@ -14,6 +23,14 @@ export default class AuthService extends Service {
     @service("rdf-store")
     store;
   
+    /**
+     * 
+     * Logs in to a solid-pod with a given provider
+     * 
+     * @param {String} identityProvider The solid-provider to login with
+     * 
+     * @method ensureLogin
+     */
     async ensureLogin(identityProvider = "https://solid.community"){
       let session = await auth.currentSession();
       if( session ) {
@@ -23,6 +40,13 @@ export default class AuthService extends Service {
       }
     }
   
+
+    /**
+     * 
+     * Fetches profile-info and the private- and public type indexes
+     * 
+     * @method ensureTypeIndex
+     */
     async ensureTypeIndex(){
       const me = sym( this.webId );
   

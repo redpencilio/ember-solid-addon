@@ -12,14 +12,33 @@ function sendAlert( message ) {
   console.error( ...arguments ); // TODO: these happen too much, fix in ForkingStore
 }
 
+/**
+ * returns the key for an attribute
+ * @param {string} attr The attribute
+ * 
+ */
 function cacheKeyForAttr( attr ) {
   return `#cache__${attr}`;
 }
 
+/**
+ * 
+ * Returns the graph linked to a type
+ * 
+ * @param {String} type The given type
+ * @param {StoreService} store The rdf-store to used for querying triples
+ */
 function graphForType( type, store ) {
   return store.discoverDefaultGraphByType( store.classForModel( type ) );
 }
 
+/**
+ * 
+ * Returns the graph where the given entity and property can be found
+ * 
+ * @param {SemanticModel} entity The entity to find the graph for
+ * @param {String} propertyName The property name
+ */
 function graphForInstance( entity, propertyName ) {
   const entityGraph = entity.store.getGraphForType( entity.modelName );
   const defaultGraph = entity.defaultGraph;
@@ -36,6 +55,15 @@ function graphForInstance( entity, propertyName ) {
   }
 }
 
+/**
+ * 
+ * Updates an entity in the rdf-store
+ * 
+ * @param {SemanticModel} entity The entity to update
+ * @param {[]} del The triples that need to be deleted
+ * @param {[]} ins The triples that need to be inserted
+ * @param {Object} options Entity options
+ */
 async function changeGraphTriples( entity, del, ins, options = {} ) {
   const validStatement = function(statement) {
     return statement.subject.value !== null && statement.predicate.value !== null && statement.object.value !== null;
@@ -56,6 +84,13 @@ async function changeGraphTriples( entity, del, ins, options = {} ) {
   store.removeStatements( del );
 }
 
+/**
+ * 
+ * Returns the object value for a property of an entity
+ * 
+ * @param {SemanticModel} target 
+ * @param {String} propertyName 
+ */
 function calculatePropertyValue( target, propertyName ) {
   let value;
   const options = target.attributeDefinitions[propertyName];
@@ -112,17 +147,37 @@ function calculatePropertyValue( target, propertyName ) {
   return value;
 }
 
+/**
+ * 
+ * Updates the object-value for a property of an entity
+ * 
+ * @param {SemanticModel} entity The entity to update
+ * @param {String} propertyName The property for which the value needs to be updated
+ */
 function updatePropertyValue( entity, propertyName ) {
   const cacheKey = cacheKeyForAttr( propertyName );
   const newValue = calculatePropertyValue( entity, propertyName );
   set( entity, cacheKey, newValue );
 }
 
+/**
+ * 
+ * Return the predicate-uri of a property
+ * 
+ * @param {SemanticModel} entity 
+ * @param {String} propertyName 
+ */
 function calculatePredicateForProperty( entity, propertyName ) {
   const options = entity.attributeDefinitions[propertyName];
   return options.predicate || ( options.ns && options.ns( propertyName ) ) || entity.defaultNamespace( propertyName );
 }
 
+/**
+ * 
+ * Defines the setter and getter methods of a property
+ * 
+ * @param {Object} options Options
+ */
 function property(options = {}) {
   const predicateUri = options.predicate;
 
@@ -240,37 +295,85 @@ function property(options = {}) {
   };
 }
 
+/**
+ * 
+ * Creates a string property
+ * 
+ * @param {Object} options Options
+ */
 function string( options = {} ) {
   options.type = "string";
   return property( options );
 }
 
+/**
+ * 
+ * Creates an integer property
+ * 
+ * @param {Object} options Options
+ */
 function integer( options = {} ) {
   options.type = "integer";
   return property( options );
 }
 
+/**
+ * 
+ * Creates a datetime property
+ * 
+ * @param {Object} options Options
+ */
 function dateTime( options = {} ) {
   options.type = "dateTime";
   return property( options );
 }
 
+/**
+ * 
+ * Creates a term property
+ * 
+ * @param {Object} options Options
+ */
 function term( options = {} ) {
   options.type = "term";
   return property( options );
 }
 
+/**
+ * 
+ * Creates a hasMany property
+ * 
+ * @param {Object} options Options
+ */
 function hasMany( options = {} ) {
   options.type = "hasMany";
   console.assert( options.model, "hasMany requires 'model' to be supplied" );
   return property( options );
 }
 
+/**
+ * 
+ * Creates a belongs-to property
+ * 
+ * @param {Object} options Options
+ */
 function belongsTo( options = {} ) {
   options.type = "belongsTo";
   return property( options );
 }
 
+/**
+ * 
+ * Model class that represents entities (resources)
+ * 
+ * @class SemanticModel
+ * 
+ * @property {String} uri The entity Uri
+ * @property {String} defaultNameSpace Default namespace of the entity
+ * @property {String} modelName The model name
+ * @property {Set} changeListeners Called when the model changes
+ * @property {StoreService} store The rdf-store used for querying triples
+ */
 class SemanticModel {
   @tracked uri;
   defaultNamespace = null;
@@ -316,6 +419,13 @@ class SemanticModel {
   }
 }
 
+/**
+ * 
+ * Checks if a given resource exists in the local store
+ * 
+ * @param {SemanticModel} entity The given resource
+ * @param {Object} options Options
+ */
 function ensureResourceExists( entity, options ) {
   const rdfType = entity.rdfType;
   // We cannot use graphForInstance here because the entity is not fully defined yet.

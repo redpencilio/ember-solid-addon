@@ -1,1 +1,1 @@
-export { default } from 'solid-addon/services/rdf-store';
+export { default } from 'ember-solid-store/services/rdf-store';

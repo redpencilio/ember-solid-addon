@@ -16,7 +16,8 @@ Installation
 ------------------------------------------------------------------------------
 
 ```
-ember install solid-addon
+npm remove ember-data
+ember install ember-solid-store
 ```
 
 

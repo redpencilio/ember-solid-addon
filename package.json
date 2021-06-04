@@ -7,9 +7,9 @@
     "solid",
     "rdf"
   ],
-  "repository": "",
+  "repository": "https://github.com/ember-solid-store.git",
   "license": "MIT",
-  "author": "",
+  "author": "Aad Versteden, Sit Min Oo, Jonathan Poelman",
   "directories": {
     "doc": "doc",
     "test": "tests"

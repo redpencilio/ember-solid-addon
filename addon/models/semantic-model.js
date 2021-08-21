@@ -398,6 +398,8 @@ class SemanticModel {
 
     if (options.defaultGraph)
       this.defaultGraph = options.defaultGraph;
+    else if (this.constructor.defaultGraph)
+      this.defaultGraph = this.constructor.defaultGraph;
     else if (this.constructor.solid) {
       this.defaultGraph = options.store.discoverDefaultGraphByType(this.constructor);
     }

@@ -217,7 +217,7 @@ export default class StoreService extends Service {
   discoverDefaultGraphByType(constructor) {
     let discoveredSolidGraph = null;
 
-    if (constructor.solid.private)
+    if (constructor.solid?.private)
       discoveredSolidGraph = findTypeRegistrationInGraph(constructor.rdfType, this, this.privateTypeIndex);
     else
       discoveredSolidGraph = findTypeRegistrationInGraph(constructor.rdfType, this, this.publicTypeIndex);
@@ -226,11 +226,11 @@ export default class StoreService extends Service {
     // found in the type index, write the storage location the correct
     // type index.
 
-    let absoluteGraph = constructor.solid.defaultStorageLocation
+    let absoluteGraph = constructor.solid?.defaultStorageLocation
       && this.me
-      && namedNode(new URL(constructor.solid.defaultStorageLocation, this.me.doc().value).href);
+      && namedNode(new URL(constructor.solid?.defaultStorageLocation, this.me.doc().value).href);
 
-    return discoveredSolidGraph || absoluteGraph || this.contructor.defaultGraph;
+    return discoveredSolidGraph || absoluteGraph || constructor.defaultGraph;
   }
 
   graphForType = {}

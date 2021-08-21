@@ -5,8 +5,8 @@ const BASE_GRAPH_STRING = "http://mu.semte.ch/libraries/rdf-store";
 
 /**
  * Yields the graph variant which contains triples to be added
- * @param {NamedNode} graph NamedNode of the base graph from which a new `addition` graph will be derived. 
- * @returns {NamedNode} NamedNode graph containing the triples to be added to the base graph. 
+ * @param {NamedNode} graph NamedNode of the base graph from which a new `addition` graph will be derived.
+ * @returns {NamedNode} NamedNode graph containing the triples to be added to the base graph.
  */
 function addGraphFor(graph) {
   const graphValue = graph.termType == 'NamedNode' ? graph.value : graph;
@@ -17,8 +17,8 @@ function addGraphFor(graph) {
 
 /**
  * Yields the graph variant which contains removals.
- * @param {NamedNode} graph NamedNode of the base graph from which a new `removal` graph will be derived. 
- * @returns {NamedNode} NamedNode graph containing the triples to be removed from the base graph. 
+ * @param {NamedNode} graph NamedNode of the base graph from which a new `removal` graph will be derived.
+ * @returns {NamedNode} NamedNode graph containing the triples to be removed from the base graph.
  */
 function delGraphFor(graph) {
   const graphValue = graph.termType == 'NamedNode' ? graph.value : graph;
@@ -28,9 +28,9 @@ function delGraphFor(graph) {
 }
 
 /**
- * Yields the graph variant which contains the merging of the `addition` and `removal` graphs. 
- * @param {NamedNode} graph NamedNode of the base graph for which the different variants will be merged. 
- * @returns {NamedNode} NamedNode graph containing the merged graph of the other variants of the base graph. 
+ * Yields the graph variant which contains the merging of the `addition` and `removal` graphs.
+ * @param {NamedNode} graph NamedNode of the base graph for which the different variants will be merged.
+ * @returns {NamedNode} NamedNode graph containing the merged graph of the other variants of the base graph.
  */
 function mergedGraphFor(graph) {
   const graphValue = graph.termType == 'NamedNode' ? graph.value : graph;
@@ -42,11 +42,11 @@ function mergedGraphFor(graph) {
 
 /**
  * Yields the `Statement` which is composed from the given `triple` and `graph`
- * @param {Object} triple an RDF triple 
- * @param {NamedNode} triple.subject NamedNode of the subject 
- * @param {NamedNode} triple.predicate NamedNode of the predicate 
+ * @param {Object} triple an RDF triple
+ * @param {NamedNode} triple.subject NamedNode of the subject
+ * @param {NamedNode} triple.predicate NamedNode of the predicate
  * @param {NamedNode} triple.object NamedNode of the object
- * @param {NamedNode} graph the graph from which a statement will be created 
+ * @param {NamedNode} graph the graph from which a statement will be created
  * @returns {Statement} statement containing the `triple` in the `graph`
  */
 function statementInGraph(triple, graph) {
@@ -55,11 +55,11 @@ function statementInGraph(triple, graph) {
 
 
 /**
- * Informs the observers of the forking store about the `payload` being sent to the 
+ * Informs the observers of the forking store about the `payload` being sent to the
  * online store.
- * 
- * @param {Object} payload payload which is to be synchronized with the online store 
- * @param {ForkingStore} forkingStore the forking store 
+ *
+ * @param {Object} payload payload which is to be synchronized with the online store
+ * @param {ForkingStore} forkingStore the forking store
  *
  */
 function informObservers(payload, forkingStore) {
@@ -75,14 +75,14 @@ function informObservers(payload, forkingStore) {
 
 
 /**
- * Triple store which models a local store in which the changes are present with each updating queries. 
- * The local store holds all the changes locally. The changes are only persisted to the online store on demand to reduce 
- * the amount of traffic. 
- * 
+ * Triple store which models a local store in which the changes are present with each updating queries.
+ * The local store holds all the changes locally. The changes are only persisted to the online store on demand to reduce
+ * the amount of traffic.
+ *
  * @class ForkingStore
- * @property {NamedNode} graph the graph which represents the local store 
- * @property {Fetcher} fetcher RDFlib's fetcher, which will be used to fetch queries 
- * @property {UpdateManager}  updater RDFlib's updater, which will be used to add/edit triples from the online store 
+ * @property {NamedNode} graph the graph which represents the local store
+ * @property {Fetcher} fetcher RDFlib's fetcher, which will be used to fetch queries
+ * @property {UpdateManager}  updater RDFlib's updater, which will be used to add/edit triples from the online store
  */
 export default class ForkingStore {
   graph = null;
@@ -100,7 +100,7 @@ export default class ForkingStore {
 
   /**
    * Load data from an external graph.
-   * @param {NamedNode} source the online source from which the triples will be loaded into local store. 
+   * @param {NamedNode} source the online source from which the triples will be loaded into local store.
    * @memberof {ForkingStore}
    */
   async load(source) {
@@ -109,12 +109,12 @@ export default class ForkingStore {
   }
 
   /**
-   * Loads the data, additions and deletions into the given graph store. 
-   * 
+   * Loads the data, additions and deletions into the given graph store.
+   *
    * @param {String} content input content to be parsed
    * @param {NamedNode} graph the graph store to be used
    * @param {String} additions  the additions input to be parsed
-   * @param {String} removals  the removals input to be parsed 
+   * @param {String} removals  the removals input to be parsed
    * @param {String} format the MIME content type string for the input - defaults to text/turtle
    * @memberof {ForkingStore}
    */
@@ -130,11 +130,11 @@ export default class ForkingStore {
   }
 
   /**
-   * 
+   *
    * Serializes the triples in the graph into string using the given format
    * @param {NamedNode} graph graph which will be serialized
-   * @param {String} format the MIME content type to be used to serialize the graph 
-   * @memberof {ForkingStore} 
+   * @param {String} format the MIME content type to be used to serialize the graph
+   * @memberof {ForkingStore}
    * @returns {String}  serialized content of the given graph
    */
   serializeDataWithAddAndDelGraph(graph, format = 'text/turtle') {
@@ -145,11 +145,11 @@ export default class ForkingStore {
     };
   }
 
-  /** 
+  /**
    * Serialized the triple in the graph into strin gusing the given format.
    * Uses the mergedGraph of the given graph.
-   * @param {NamedNode} graph graph which will be serialized 
-   * @param {String} format the MIME content type to be used to serialize the graph 
+   * @param {NamedNode} graph graph which will be serialized
+   * @param {String} format the MIME content type to be used to serialize the graph
    * @memberof {ForkingStore}
    * @returns {String} serialized content of the given graph
    */
@@ -161,7 +161,7 @@ export default class ForkingStore {
    * Parses content from a file into a specified graph.
    * @param {String} content input content to be parsed
    * @param {NamedNode} graph the graph store to be used
-   * @param {String} format the MIME content type to be used to parse the content into the graph 
+   * @param {String} format the MIME content type to be used to parse the content into the graph
    * @memberof {ForkingStore}
    */
   parse(content, graph, format) {
@@ -173,8 +173,8 @@ export default class ForkingStore {
    * Perform a match on the graph.
    * @param {NamedNode} subject subject NamedNode to be used in matching
    * @param {NamedNode} predicate predicate NamedNode to be used in matching
-   * @param {NamedNode} object object NamedNode to be used in matching 
-   * @param {NamedNode} graph graph in which the given triple will be matched in. 
+   * @param {NamedNode} object object NamedNode to be used in matching
+   * @param {NamedNode} graph graph in which the given triple will be matched in.
    * @memberof {ForkingStore}
    */
   match(subject, predicate, object, graph) {
@@ -201,8 +201,8 @@ export default class ForkingStore {
 
   /**
    * internal to compare triples
-   * @param {Statement} a statement to be compared 
-   * @param {Statement} b other statement to be compared to 
+   * @param {Statement} a statement to be compared
+   * @param {Statement} b other statement to be compared to
    * @memberof {ForkingStore}
    * @returns {bool} true if equal else false
    */
@@ -211,7 +211,7 @@ export default class ForkingStore {
   }
 
   /**
-   * Perform any match on the graph. 
+   * Perform any match on the graph.
    */
   any(subject, predicate, object, graph) {
     const matches = this.match(subject, predicate, object, graph);
@@ -233,9 +233,9 @@ export default class ForkingStore {
   }
 
   /**
-   * Add all the given statements into the temporary `addition` graph. 
-   * Also does removal of the statement from the `deletion` graph if it exists there. 
-   * @param {List<Statement>} inserts list of statements to be added to the `addition` graph based on the graph of the statement 
+   * Add all the given statements into the temporary `addition` graph.
+   * Also does removal of the statement from the `deletion` graph if it exists there.
+   * @param {List<Statement>} inserts list of statements to be added to the `addition` graph based on the graph of the statement
    * @memberof {ForkingStore}
    */
   addAll(inserts) {
@@ -252,8 +252,8 @@ export default class ForkingStore {
   }
 
   /**
-   * Remove the given statements from the `addition` graph and add them to the `deletion` graph. 
-   * @param {List<Statement>} deletes list of statemetns to be added to the `deletion` graph based on the graph of the statement 
+   * Remove the given statements from the `addition` graph and add them to the `deletion` graph.
+   * @param {List<Statement>} deletes list of statemetns to be added to the `deletion` graph based on the graph of the statement
    * @memberof {ForkingStore}
    */
   removeStatements(deletes) {
@@ -270,9 +270,9 @@ export default class ForkingStore {
   }
 
   /**
-   * 
-   * All instances of the triple to be removed from the graph 
-   * 
+   *
+   * All instances of the triple to be removed from the graph
+   *
    */
   removeMatches(subject, predicate, object, graph) {
     // TODO: this should go through forking methods
@@ -281,7 +281,7 @@ export default class ForkingStore {
   }
 
   /**
-   * Returns a set of existing graphs in the local store. 
+   * Returns a set of existing graphs in the local store.
    */
   allGraphs() {
     const graphStatements =
@@ -294,8 +294,8 @@ export default class ForkingStore {
   }
 
   /**
-   * 
-   * Returns a list of graph for which there has been changes. 
+   *
+   * Returns a list of graph for which there has been changes.
    */
   changedGraphs() {
     const forGraphs = new Set();
@@ -317,7 +317,7 @@ export default class ForkingStore {
   }
 
   /**
-   * Merges the `addition` and `deletion` graphs into the base graph. 
+   * Merges the `addition` and `deletion` graphs into the base graph.
    * @param {NamedNode} graph the graph to be merged with its `addition` and `deletion` graphs
    */
   mergedGraph(graph) {
@@ -355,7 +355,7 @@ export default class ForkingStore {
   }
 
   /**
-   * Persists the triples in the local store of the given grpah to the online store. 
+   * Persists the triples in the local store of the given grpah to the online store.
    * @param {NamedNode} graph the graph for which the changes will be pushed to the online store
    * @memberof {ForkingStore}
    */

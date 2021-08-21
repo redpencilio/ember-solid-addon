@@ -217,7 +217,7 @@ function property(options = {}) {
         const graph = graphForInstance(this, propertyName);
         const setRelationObject = function(object) {
           const del = this.store.match(this.uri, predicate, undefined, graph);
-          const ins = [new Statement(this.uri, predicate, object, graph)];
+          const ins = object ? [new Statement(this.uri, predicate, object, graph)] : [];
           // console.log(del);
           // console.log(ins);
           changeGraphTriples(this, del, ins)
@@ -237,13 +237,20 @@ function property(options = {}) {
             setRelationObject(new rdflib.Literal(value.toUTCString(), null, XSD("dateTime")));
             break;
           case "belongsTo":
-            setRelationObject(value.uri);
+            const oldValue = this[propertyName];
+            setRelationObject(value && value.uri);
             // invalidate inverse relation
-            if (options.inverseProperty) updatePropertyValue(value, options.inverseProperty);
+            if (options.inverseProperty) {
+              oldValue && updatePropertyValue(oldValue, options.inverseProperty);
+              value && updatePropertyValue(value, options.inverseProperty);
+            }
             break;
           case "hasMany":
+            value = value || []; // ensure the value is an array, even if
+                                 // null was supplied, this helps
+                                 // consumers further down the line
             const newObjects = new Set(value);
-            const oldObjects = new Set(this[cacheKey] || []);
+            const oldObjects = new Set(this[propertyName] || []);
 
             let statementsToRemove = [];
             let statementsToAdd = [];

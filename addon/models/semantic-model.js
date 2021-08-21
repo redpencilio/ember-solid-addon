@@ -391,6 +391,17 @@ class SemanticModel {
     console.log(...arguments);
   }
 
+  destroy(){
+    this.attributes.forEach( (attr) => this[attr] = null );
+
+    changeGraphTriples(
+      this,
+      [new rdflib.Statement( this.uri, RDF("type"), this.rdfType, graphForInstance(this) )],
+      [])
+      .then( (uri, message, response) => console.log(`Success deleting: ${message}` ) )
+      .catch( (message, uri, response ) => sendAlert(message, { uri, message, response }) );
+  }
+
   @service("rdf-store") store;
 
   constructor(uri, options = {}) {

@@ -398,7 +398,7 @@ export default class ForkingStore {
    * Promise based version of update protocol
    */
   update(deletes, inserts) {
-    console.log(deletes);
+    // console.log(deletes);
     return new Promise((resolve, reject) => {
       this.updater.update(
         deletes, inserts,

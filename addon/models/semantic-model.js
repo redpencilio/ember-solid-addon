@@ -105,6 +105,14 @@ function calculatePropertyValue(target, propertyName) {
     case "integer":
       value = response && parseInt(response.value);
       break;
+    case "boolean":
+      if( response === undefined ) {
+        value = undefined;
+      } else {
+        const val = response.value;
+        value = (val == "true" || val == "1");
+      }
+      break;
     case "term":
       value = response;
       break;
@@ -233,6 +241,9 @@ function property(options = {}) {
           case "integer":
             setRelationObject(new rdflib.Literal(value, null, XSD("decimal")));
             break;
+          case "boolean":
+            setRelationObject(new rdflib.literal(value ? "true" : "false", null, XSD("boolean")));
+            break;
           case "dateTime":
             setRelationObject(new rdflib.Literal(value.toUTCString(), null, XSD("dateTime")));
             break;
@@ -319,6 +330,17 @@ function string(options = {}) {
  */
 function integer(options = {}) {
   options.type = "integer";
+  return property(options);
+}
+
+/**
+ *
+ * Creates a boolean property
+ *
+ * @param {Object} options Options
+ */
+function boolean(options = {}) {
+  options.type = "boolean";
   return property(options);
 }
 
@@ -493,5 +515,5 @@ function solid(options) {
 }
 
 export default SemanticModel;
-export { property, string, integer, dateTime, hasMany, belongsTo, term, solid };
+export { property, string, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
 export { rdfType, defaultGraph, autosave };

@@ -91,9 +91,9 @@ export default class ForkingStore {
 
   observers = null;
 
-  constructor() {
+  constructor({ fetch }) {
     this.graph = rdflib.graph();
-    this.fetcher = new Fetcher(this.graph);
+    this.fetcher = new Fetcher(this.graph, { fetch });
     this.updater = new UpdateManager(this.graph);
     this.observers = {};
   }
@@ -399,6 +399,9 @@ export default class ForkingStore {
    */
   update(deletes, inserts) {
     // console.log(deletes);
+
+    // TODO: detect rejection correctly and implement
+    // http://linkeddata.github.io/rdflib.js/doc/classes/updatemanager.html#update
     return new Promise((resolve, reject) => {
       this.updater.update(
         deletes, inserts,

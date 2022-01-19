@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
-import auth from "solid-auth-client";
+import { fetch, Session, getClientAuthenticationWithDependencies } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'ember-rdflib';
 import { SOLID } from '../utils/namespaces';
 
@@ -31,12 +31,25 @@ export default class AuthService extends Service {
    *
    * @method ensureLogin
    */
-  async ensureLogin(identityProvider = "https://solid.community") {
-    let session = await auth.currentSession();
-    if (session) {
+  async ensureLogin(identityProvider = "https://solid.redpencil.io/", clientName = "RDFlib NOW!") {
+    if (!this.session) {
+      const session = new Session({
+        clientAuthentication: getClientAuthenticationWithDependencies({})
+      }, 'mySession');
+
+      await session.handleIncomingRedirect({ restorePreviousSession: true });
+
+      if (!session.info.isLoggedIn) {
+        await session.login({
+          oidcIssuer: identityProvider,
+          redirectUrl: window.location.href,
+          clientName: clientName
+        });
+      }
+
       this.session = session;
-    } else {
-      auth.login(identityProvider);
+      this.store.authSession = session;
+      this.store.podBase = this.podBase;
     }
   }
 
@@ -47,23 +60,39 @@ export default class AuthService extends Service {
    * @method ensureTypeIndex
    */
   async ensureTypeIndex() {
-    const me = sym(this.webId);
+    await this.store.load(this.webIdSym.doc());
 
-    await this.store.load(me.doc());
-    // this.me = this.store.create('solid/person', me, { defaultGraph: me.doc() });
-
-    const privateTypeIndex = this.store.any(me, SOLID("privateTypeIndex"), undefined, me.doc());
-    const publicTypeIndex = this.store.any(me, SOLID("publicTypeIndex"), undefined, me.doc());
-
+    const privateTypeIndex = this.privateTypeIndexLocation;
     this.store.privateTypeIndex = privateTypeIndex;
-    this.store.publicTypeIndex = publicTypeIndex;
-    this.store.me = me;
-
     await this.store.load(privateTypeIndex);
+
+    const publicTypeIndex = this.publicTypeIndexLocation;
+    this.store.publicTypeIndex = publicTypeIndex;
     await this.store.load(publicTypeIndex);
   }
 
+  get privateTypeIndexLocation() {
+    return this.store.any(this.webIdSym, SOLID("privateTypeIndex"), undefined, this.webIdSym.doc())
+      || `#{this.podBase}/settings}/privateTypeIndex`;
+  }
+
+  get publicTypeIndexLocation() {
+    return this.story.any(this.webIdSym, SOLID("publicTypeIndex"), undefined, this.webIdSym.doc())
+      || `#{this.podBase}/settings}/publicTypeIndex`;
+  }
+
   get webId() {
-    return this.session ? this.session.webId : undefined;
+    return this.session?.info?.webId;
+  }
+
+  get webIdSym() {
+    return sym(this.webId);
+  }
+
+  get podBase() {
+    if (this.webId) {
+      const url = new URL(this.webId);
+      return `${url.origin}/${url.pathname.split('/')[1]}`;
+    }
   }
 }

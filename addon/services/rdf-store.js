@@ -66,11 +66,21 @@ export default class StoreService extends Service {
 
   privateTypeIndex = null;
   publicTypeIndex = null;
-  me = null;
+  authSession = null;
+  podBase = null;
 
   constructor() {
     super(...arguments);
-    this.store = new ForkableStore();
+
+    this.store = new ForkableStore( { fetch: this.fetch.bind(this) } );
+  }
+
+  async fetch() {
+    if( this.authSession && this.authSession.info && this.authSession.info.webId ) {
+      return await this.authSession.fetch(...arguments);
+    } else {
+      return await fetch( ...arguments );
+    }
   }
 
   match() { return this.store.match(...arguments); }
@@ -227,8 +237,8 @@ export default class StoreService extends Service {
     // type index.
 
     let absoluteGraph = constructor.solid?.defaultStorageLocation
-      && this.me
-      && namedNode(new URL(constructor.solid?.defaultStorageLocation, this.me.doc().value).href);
+      && this.podBase
+      && namedNode(`${this.podBase}${constructor.solid.defaultStorageLocation}`);
 
     return discoveredSolidGraph || absoluteGraph || constructor.defaultGraph;
   }

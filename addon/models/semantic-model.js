@@ -234,6 +234,8 @@ function property(options = {}) {
         }.bind(this);
 
         let object;
+        // TODO: add support for clearing values using undefined or
+        // null.
         switch (options.type) {
           case "string":
             setRelationObject(new rdflib.Literal(value));

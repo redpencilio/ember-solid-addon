@@ -4,8 +4,9 @@ import { get, set } from '@ember/object';
 import { XSD, RDF } from '../utils/namespaces';
 import rdflib from 'ember-rdflib';
 import env from 'ember-get-config';
+import { toNamespace, toNamedNode } from '../utils/namespaces';
 
-const { Statement, NamedNode } = rdflib;
+const { Statement } = rdflib;
 
 function sendAlert(message) {
   console.error(...arguments); // TODO: these happen too much, fix in ForkingStore
@@ -107,7 +108,7 @@ function calculatePropertyValue(target, propertyName) {
       value = response && parseInt(response.value);
       break;
     case "boolean":
-      if( response === undefined ) {
+      if (response === undefined) {
         value = undefined;
       } else {
         const val = response.value;
@@ -176,7 +177,14 @@ function updatePropertyValue(entity, propertyName) {
  */
 function calculatePredicateForProperty(entity, propertyName) {
   const options = entity.attributeDefinitions[propertyName];
-  return options.predicate || (options.ns && options.ns(propertyName)) || entity.defaultNamespace(propertyName);
+  const predicate = (options.predicate && toNamedNode(options.predicate))
+        || (options.ns && toNamespace(options.ns)(propertyName))
+        || (entity.defaultNamespace && toNamespace(entity.defaultNamespace)(propertyName))
+        || (entity.constructor.namespace && entity.constructor.namespace(propertyName));
+  if (!predicate)
+    throw "Could not calculate predicate";
+  else
+    return predicate;
 }
 
 /**
@@ -261,8 +269,8 @@ function property(options = {}) {
             break;
           case "hasMany":
             value = value || []; // ensure the value is an array, even if
-                                 // null was supplied, this helps
-                                 // consumers further down the line
+            // null was supplied, this helps
+            // consumers further down the line
             const newObjects = new Set(value);
             const oldObjects = new Set(this[propertyName] || []);
 
@@ -416,15 +424,15 @@ class SemanticModel {
     console.log(...arguments);
   }
 
-  destroy(){
-    this.attributes.forEach( (attr) => this[attr] = null );
+  destroy() {
+    this.attributes.forEach((attr) => this[attr] = null);
 
     changeGraphTriples(
       this,
-      [new rdflib.Statement( this.uri, RDF("type"), this.rdfType, graphForInstance(this) )],
+      [new rdflib.Statement(this.uri, RDF("type"), this.rdfType, graphForInstance(this))],
       [])
-      .then( (uri, message, response) => console.log(`Success deleting: ${message}` ) )
-      .catch( (message, uri, response ) => sendAlert(message, { uri, message, response }) );
+      .then((uri, message, response) => console.log(`Success deleting: ${message}`))
+      .catch((message, uri, response) => sendAlert(message, { uri, message, response }));
   }
 
   @service(env.rdfStore.name) store;
@@ -448,7 +456,7 @@ class SemanticModel {
 
     this.uri = uri;
 
-    if ( this.rdfType || this.constructor.rdfType ) {
+    if (this.rdfType || this.constructor.rdfType) {
       this.rdfType = this.rdfType || this.constructor.rdfType;
     }
 
@@ -517,13 +525,18 @@ function autosave(bool = true) {
 function solid(options) {
   return function(klass) {
     klass.solid = options;
-    if( !options.type ) {
-      console.error('Must specify type for SOLID instances eg: type: "http://example.com/MyThing"');
+
+    if (options.namespace || options.ns) {
+      klass.namespace = toNamespace(options.namespace || options.ns);
+    }
+
+    if (!options.type && !klass.namespace) {
+      console.error('Must specify type for SOLID instances (eg: type: "http://example.com/MyThing") or specify namespace (eg: namespace: "http://example.com/" or namespace: "ext:")');
     } else {
-      if( options.type instanceof NamedNode )
-        klass.rdfType = options.type;
+      if( options.type )
+        klass.rdfType = toNamedNode(options.type);
       else
-        klass.rdfType = new NamedNode( options.type );
+        klass.rdfType = klass.namespace(klass.name);
     }
   };
 }

@@ -5,7 +5,7 @@ import { XSD, RDF } from '../utils/namespaces';
 import rdflib from 'ember-rdflib';
 import env from 'ember-get-config';
 
-const { Statement } = rdflib;
+const { Statement, NamedNode } = rdflib;
 
 function sendAlert(message) {
   console.error(...arguments); // TODO: these happen too much, fix in ForkingStore
@@ -448,8 +448,11 @@ class SemanticModel {
 
     this.uri = uri;
 
-    if (this.rdfType || this.constructor.rdfType)
+    if ( this.rdfType || this.constructor.rdfType ) {
       this.rdfType = this.rdfType || this.constructor.rdfType;
+    }
+
+
 
     ensureResourceExists(this, options);
   }
@@ -514,6 +517,14 @@ function autosave(bool = true) {
 function solid(options) {
   return function(klass) {
     klass.solid = options;
+    if( !options.type ) {
+      console.error('Must specify type for SOLID instances eg: type: "http://example.com/MyThing"');
+    } else {
+      if( options.type instanceof NamedNode )
+        klass.rdfType = options.type;
+      else
+        klass.rdfType = new NamedNode( options.type );
+    }
   };
 }
 

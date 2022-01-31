@@ -4,6 +4,7 @@ import Service from '@ember/service';
 import { fetch, Session, getClientAuthenticationWithDependencies } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'ember-rdflib';
 import { SOLID } from '../utils/namespaces';
+import env from 'ember-get-config';
 
 const { sym } = rdflib;
 
@@ -20,7 +21,7 @@ export default class AuthService extends Service {
   @tracked
   session = null;
 
-  @service("rdf-store")
+  @service(env.rdfStore.name)
   store;
 
   /**

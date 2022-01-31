@@ -2,7 +2,7 @@ import Service from '@ember/service';
 import rdflib from 'ember-rdflib';
 import { getOwner, setOwner } from '@ember/application';
 import { RDF, SOLID } from '../utils/namespaces';
-// import env from '../../config/environment';
+import env from 'ember-get-config';
 import ForkableStore from '../utils/forking-store';
 
 const { namedNode } = rdflib;
@@ -57,7 +57,7 @@ function findTypeRegistrationInGraph(type, store, typeGraph) {
  * @property {NamedNode} publicTypeIndex The public type index node of the solid pod
  * @property {NamedNode} me The node representing the me-subject of the solid pod
  */
-export default class StoreService extends Service {
+class StoreService extends Service {
   store = null;
 
   storeCache = {}
@@ -289,3 +289,11 @@ export default class StoreService extends Service {
     this.changeListeners.remove(listener);
   }
 }
+
+export function initialize(application) {
+  application.register(`service:${env.rdfStore.name}`, StoreService, { singleton: true, instantiate: true });
+}
+
+export default {
+  initialize
+};

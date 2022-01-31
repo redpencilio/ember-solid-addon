@@ -3,6 +3,7 @@ import { tracked } from '@glimmer/tracking';
 import { get, set } from '@ember/object';
 import { XSD, RDF } from '../utils/namespaces';
 import rdflib from 'ember-rdflib';
+import env from 'ember-get-config';
 
 const { Statement } = rdflib;
 
@@ -426,7 +427,7 @@ class SemanticModel {
       .catch( (message, uri, response ) => sendAlert(message, { uri, message, response }) );
   }
 
-  @service("rdf-store") store;
+  @service(env.rdfStore.name) store;
 
   constructor(uri, options = {}) {
     const store = options.store;

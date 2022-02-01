@@ -10,7 +10,7 @@ module.exports = {
   },
 
   async afterInstall() {
-    this.removePackageFromProject("ember-data");
+    await this.removePackageFromProject("ember-data");
     await this.insertIntoFile('config/environment.js',
                               `\n    rdfStore: {\n      name: "store",\n      enableDataAdapter: true // Ember Inspector "Data" tab\n    },`,
                               { before: /\s*EmberENV/ }

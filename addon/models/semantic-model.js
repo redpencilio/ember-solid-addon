@@ -5,6 +5,7 @@ import { XSD, RDF } from '../utils/namespaces';
 import rdflib from 'ember-rdflib';
 import env from 'ember-get-config';
 import { toNamespace, toNamedNode } from '../utils/namespaces';
+import { v4 as uuid } from 'uuid';
 
 const { Statement } = rdflib;
 
@@ -435,10 +436,11 @@ class SemanticModel {
       .catch((message, uri, response) => sendAlert(message, { uri, message, response }));
   }
 
-  @service(env.rdfStore.name) store;
+  // @service(env.rdfStore.name) store;
 
-  constructor(uri, options = {}) {
+  constructor(options = {}) {
     const store = options.store;
+    this.store = store;
 
     if (options.defaultGraph)
       this.defaultGraph = options.defaultGraph;
@@ -454,15 +456,27 @@ class SemanticModel {
       this.modelName = options.modelName;
     }
 
-    this.uri = uri;
+    if (options.uri) {
+      this.uri = toNamedNode(options.uri);
+    } else {
+      this.uuid = this.uuid || options.uuid || uuid();
+      this.uri = toNamedNode(`${this.defaultGraph.value}#${this.uuid}`);
+    }
 
     if (this.rdfType || this.constructor.rdfType) {
       this.rdfType = this.rdfType || this.constructor.rdfType;
     }
 
-
-
     ensureResourceExists(this, options);
+
+    // import supplied properties
+    const nonPropertyOptions = ["store","defaultGraph","defaultNamespace","modelName","uri"];
+    Object
+      .keys(options)
+      .filter( (k) => !nonPropertyOptions.includes(k) )
+      .forEach( (k) => {
+          set( this, k, options[k] );
+      });
   }
 
   addChangeListener(listener) {

@@ -102,9 +102,9 @@ class StoreService extends Service {
    *
    * @method
    */
-  create(model, uri, options) {
+  create(model, options = {}) {
     // check the cache
-    const peekedInstance = this.peekInstance(model, uri);
+    const peekedInstance = this.peekInstance(model, options.uri);
     if (peekedInstance) return peekedInstance;
 
     // create a new instance
@@ -114,7 +114,7 @@ class StoreService extends Service {
     createOptions.store = this;
     createOptions.modelName = model;
     // console.log(createOptions)
-    const instance = new klass(uri, createOptions);
+    const instance = new klass(createOptions);
     // console.log(instance);
     setOwner(instance, owner);
     this.storeCacheForModel(model).push(instance);
@@ -188,7 +188,7 @@ class StoreService extends Service {
 
     return this
       .match(undefined, RDF("type"), klass.rdfType, sourceGraph)
-      .map(({ subject }) => this.create(model, subject));
+      .map(({ subject }) => this.create(model, { uri: subject }));
   }
 
   classForModel(model) {
@@ -291,7 +291,10 @@ class StoreService extends Service {
 }
 
 export function initialize(application) {
-  application.register(`service:${env.rdfStore.name}`, StoreService, { singleton: true, instantiate: true });
+  const storeName = `service:${env.rdfStore.name}`;
+  application.register(storeName, StoreService, { singleton: true, instantiate: true });
+  application.inject("route", "store", storeName);
+  application.inject("controller", "store", storeName);
 }
 
 export default {

@@ -1,16 +1,12 @@
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
-import { fetch, Session, getClientAuthenticationWithDependencies, onSessionRestore } from '@inrupt/solid-client-authn-browser';
+import { fetch, Session, getClientAuthenticationWithDependencies, onSessionRestore, getDefaultSession, login, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'ember-rdflib';
 import { SOLID } from '../utils/namespaces';
 import env from 'ember-get-config';
 
 const { sym } = rdflib;
-
-onSessionRestore((url) => {
-  console.log(`We should be visiting ${url}`);
-});
 
 async function sessionPodBase(session) {
   // TODO: detect pod base by traversing upward
@@ -34,17 +30,6 @@ export default class AuthService extends Service {
   @tracked
   session = null;
 
-  get session() {
-    if (this._session) {
-      return this._session;
-    } else {
-    }
-  }
-
-  set session(session) {
-    this._session = session;
-  }
-
   get isLoggedIn() {
     const session = this.session;
     return session?.info?.isLoggedIn;
@@ -52,6 +37,9 @@ export default class AuthService extends Service {
 
   @service(env.rdfStore.name)
   store;
+
+  @service
+  router;
 
   async restoreSession() {
     if (this.session)
@@ -62,16 +50,27 @@ export default class AuthService extends Service {
       }, 'solid-store-session');
 
       try {
+        const redirectPath = window.localStorage.getItem("solid-auth-redirect-path");
+        if( !redirectPath )
+          window.localStorage.setItem("solid-auth-redirect-path", window.location.href);
+
         const incomingRedirectResponse = await session.handleIncomingRedirect({ restorePreviousSession: true, url: window.location.href });
         console.log({incomingRedirectResponse});
         this.store.authSession = session;
         this.store.podBase = await sessionPodBase( session );
+
+        window.localStorage.removeItem("solid-auth-redirect-path");
+        if( redirectPath ) {
+          const url = new URL(redirectPath);
+          const recognized = this.router.recognize( url.href.slice(url.origin.length) );
+          this.router.replaceWith( recognized.name, Object.assign( {}, recognized.params, { queryParams: recognized.queryParams }) );
+        }
       } catch (e) {
         console.error(`Failed to log in: ${e}`);
       }
 
       this.session = session;
-      return session;
+      return this.session;
     }
   }
 
@@ -98,6 +97,8 @@ export default class AuthService extends Service {
 
       if (!identityProvider)
         this.router.transitionTo("login", { queryParams: { from: redirectUrl } });
+
+      window.localStorage.setItem("solid-auth-redirect-path", redirectUrl);
 
       await session.login({
         oidcIssuer: identityProvider,

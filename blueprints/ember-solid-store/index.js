@@ -20,6 +20,6 @@ module.exports = {
                              );
     await this.insertIntoFile('app/router.js',
                               `\n  this.route('login');`,
-                              { after: /Router.map.*/ });
+                              { after: /Router.map\([^}]+/ });
   }
 };

@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
-import { fetch, Session, getClientAuthenticationWithDependencies, onSessionRestore, getDefaultSession, login, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
+import { fetch, Session, getClientAuthenticationWithDependencies, getDefaultSession, login, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'ember-rdflib';
 import { SOLID } from '../utils/namespaces';
 import env from 'ember-get-config';

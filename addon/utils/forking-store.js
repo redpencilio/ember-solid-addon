@@ -1,4 +1,4 @@
-import rdflib from 'ember-rdflib';
+import rdflib from 'rdflib';
 
 const { Fetcher, UpdateManager, namedNode, Statement } = rdflib;
 const BASE_GRAPH_STRING = "http://mu.semte.ch/libraries/rdf-store";

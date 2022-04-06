@@ -1,4 +1,4 @@
-import rdflib from 'ember-rdflib';
+import rdflib from 'rdflib';
 
 const ns = {
   rdf: rdflib.Namespace("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),

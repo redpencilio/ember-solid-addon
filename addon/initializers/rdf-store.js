@@ -1,5 +1,5 @@
 import Service from '@ember/service';
-import rdflib from 'ember-rdflib';
+import rdflib from 'rdflib';
 import { getOwner, setOwner } from '@ember/application';
 import { RDF, SOLID } from '../utils/namespaces';
 import env from 'ember-get-config';

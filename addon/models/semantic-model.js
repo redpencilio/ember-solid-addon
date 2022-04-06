@@ -2,7 +2,7 @@ import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { get, set } from '@ember/object';
 import { XSD, RDF } from '../utils/namespaces';
-import rdflib from 'ember-rdflib';
+import rdflib from 'rdflib';
 import env from 'ember-get-config';
 import { toNamespace, toNamedNode } from '../utils/namespaces';
 import { v4 as uuid } from 'uuid';

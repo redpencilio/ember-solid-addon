@@ -1,4 +1,4 @@
-import rdflib from 'ember-rdflib';
+import rdflib from 'rdflib';
 
 const FORM_GRAPH = new rdflib.NamedNode("http://mu.semte.ch/form");
 const SOURCE_GRAPH = new rdflib.NamedNode("http://mu.semte.ch/dilbeek");

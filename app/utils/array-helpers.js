@@ -1,1 +1,1 @@
-export { updateEmberArray } from 'ember-solid-store/utils/array-helpers';
+export { updateEmberArray } from 'ember-solid/utils/array-helpers';

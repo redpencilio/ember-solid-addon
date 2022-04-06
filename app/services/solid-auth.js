@@ -1,1 +1,1 @@
-export { default } from 'ember-solid-store/services/solid-auth';
+export { default } from 'ember-solid/services/solid-auth';

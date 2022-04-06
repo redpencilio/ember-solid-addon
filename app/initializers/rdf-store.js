@@ -1,1 +1,1 @@
-export { default, initialize } from 'ember-solid-store/initializers/rdf-store';
+export { default, initialize } from 'ember-solid/initializers/rdf-store';

@@ -1,1 +1,1 @@
-export { rdf, Namespace } from 'ember-solid-store/utils/rdf';
+export { rdf, Namespace } from 'ember-solid/utils/rdf';

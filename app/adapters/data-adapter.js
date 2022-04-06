@@ -1,1 +1,1 @@
-export { default } from 'ember-solid-store/adapters/data-adapter'
+export { default } from 'ember-solid/adapters/data-adapter'

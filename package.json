@@ -1,5 +1,5 @@
 {
-  "name": "ember-solid-store",
+  "name": "ember-solid",
   "version": "0.1.0",
   "description": "An Ember.js addon to quickly store data in a SOLID pod.  Probably the fastest way to create a backend.",
   "keywords": [
@@ -7,7 +7,7 @@
     "solid",
     "rdf"
   ],
-  "repository": "https://github.com/ember-solid-store.git",
+  "repository": "https://github.com/redpencilio/ember-solid.git",
   "license": "MIT",
   "author": "Aad Versteden, Sit Min Oo, Jonathan Poelman",
   "directories": {

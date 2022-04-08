@@ -1,4 +1,4 @@
-import SemanticModel, { solid, string, integer, hasMany, belongsTo } from 'ember-solid-store/models/semantic-model';
+import SemanticModel, { solid, string, integer, hasMany, belongsTo } from 'ember-solid/models/semantic-model';
 
 @solid({
   // defaultStorageLocation: "/private/tests/my-books.ttl", // default location in solid pod

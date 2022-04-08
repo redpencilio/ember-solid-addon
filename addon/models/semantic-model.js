@@ -1,9 +1,7 @@
-import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import { get, set } from '@ember/object';
 import { XSD, RDF } from '../utils/namespaces';
 import rdflib from 'rdflib';
-import env from 'ember-get-config';
 import { toNamespace, toNamedNode } from '../utils/namespaces';
 import { v4 as uuid } from 'uuid';
 
@@ -105,8 +103,12 @@ function calculatePropertyValue(target, propertyName) {
     case "string":
       value = response && response.value;
       break;
-    case "uri":
-      value = response && response.value;
+    case "stringSet":
+      value =
+        target
+          .store
+          .match(target.uri, predicate, undefined, graph)
+          .map(({ object }) => object.value);
       break;
     case "integer":
       value = response && parseInt(response.value);
@@ -253,6 +255,21 @@ function property(options = {}) {
           case "string":
             setRelationObject(new rdflib.Literal(value));
             break;
+          case "stringSet":
+            const setDifference = (left,right) => new Set([...left].filter( (l) => !right.has(l) ));
+
+            const newStrings = new Set(value);
+            const previousStrings = new Set(this[propertyName] || []);
+
+            const stringsToRemove = setDifference(previousStrings, newStrings);
+            const stringsToAdd = setDifference(newStrings, previousStrings);
+
+            changeGraphTriples(
+              this,
+              stringsToRemove.map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str))),
+              stringsToAdd.map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str))));
+
+            break;
           case "integer":
             setRelationObject(new rdflib.Literal(value, null, XSD("decimal")));
             break;
@@ -339,6 +356,17 @@ function string(options = {}) {
   options.type = "string";
   return property(options);
 }
+
+/**
+ * Creates a string-set property, which is a multi-valued string.
+ *
+ * @param {Object} options Options
+ */
+function stringSet(options = {}) {
+  options.type = "stringSet";
+  return property(options);
+}
+
 
 /**
  *
@@ -573,5 +601,5 @@ function solid(options) {
 }
 
 export default SemanticModel;
-export { property, string, uri, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
+export { property, string, stringSet, uri, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
 export { rdfType, defaultGraph, autosave };

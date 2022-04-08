@@ -97,8 +97,8 @@ class StoreService extends Service {
    * Creates an instance of a model with a specific uri and saves it in the cache
    *
    * @param {String} model Model to create an instance of
-   * @param {String} uri Uri of the resource
    * @param {Object} options Options
+   * @param {String} options.uri Uri of the resource
    *
    * @method
    */

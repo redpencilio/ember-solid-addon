@@ -123,7 +123,7 @@ function calculatePropertyValue(target, propertyName) {
       value = response && new Date(response.value);
       break;
     case "belongsTo":
-      value = response && target.store.create(options.model, response, createRelatedRecordOptions);
+      value = response && target.store.create(options.model, Object.assign({ uri: response }, createRelatedRecordOptions));
       break;
     case "hasMany":
       var matches;
@@ -146,7 +146,7 @@ function calculatePropertyValue(target, propertyName) {
       value =
         matches
           .map((uri) =>
-            target.store.create(options.model, uri, createRelatedRecordOptions));
+            target.store.create(options.model, Object.assign( { uri }, createRelatedRecordOptions )));
       break;
     case undefined:
       value = response && response.value;
@@ -254,7 +254,7 @@ function property(options = {}) {
             setRelationObject(new rdflib.Literal(value, null, XSD("decimal")));
             break;
           case "boolean":
-            setRelationObject(new rdflib.literal(value ? "true" : "false", null, XSD("boolean")));
+            setRelationObject(new rdflib.Literal(value ? "true" : "false", null, XSD("boolean")));
             break;
           case "dateTime":
             setRelationObject(new rdflib.Literal(value.toUTCString(), null, XSD("dateTime")));

@@ -105,6 +105,9 @@ function calculatePropertyValue(target, propertyName) {
     case "string":
       value = response && response.value;
       break;
+    case "uri":
+      value = response && response.value;
+      break;
     case "integer":
       value = response && parseInt(response.value);
       break;
@@ -259,6 +262,9 @@ function property(options = {}) {
           case "dateTime":
             setRelationObject(new rdflib.Literal(value.toUTCString(), null, XSD("dateTime")));
             break;
+          case "uri":
+            setRelationObject(new rdflib.NamedNode(value));
+            break;
           case "belongsTo":
             const oldValue = this[propertyName];
             setRelationObject(value && value.uri);
@@ -331,6 +337,17 @@ function property(options = {}) {
  */
 function string(options = {}) {
   options.type = "string";
+  return property(options);
+}
+
+/**
+ *
+ * Creates a uri property
+ *
+ * @param {Object} options Options
+ */
+function uri(options = {}) {
+  options.type = "uri";
   return property(options);
 }
 
@@ -556,5 +573,5 @@ function solid(options) {
 }
 
 export default SemanticModel;
-export { property, string, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
+export { property, string, uri, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
 export { rdfType, defaultGraph, autosave };

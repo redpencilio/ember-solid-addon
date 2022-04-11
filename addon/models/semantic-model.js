@@ -266,8 +266,8 @@ function property(options = {}) {
 
             changeGraphTriples(
               this,
-              stringsToRemove.map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str))),
-              stringsToAdd.map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str))));
+              [...stringsToRemove].map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str), graph)),
+              [...stringsToAdd].map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str), graph)));
 
             break;
           case "integer":

@@ -59,10 +59,16 @@ export default class AuthService extends Service {
         this.store.authSession = session;
         this.store.podBase = await sessionPodBase( session );
 
-        window.localStorage.removeItem("solid-auth-redirect-path");
+        // Perhaps enable again?
+        // window.localStorage.removeItem("solid-auth-redirect-path");
         if( redirectPath ) {
           const url = new URL(redirectPath);
-          const recognized = this.router.recognize( url.href.slice(url.origin.length) );
+          let recognized;
+          if( this.router.location.implementation == "hash" ) {
+            recognized = this.router.recognize( url.hash.slice(1) );
+          } else {
+            recognized = this.router.recognize( url.href.slice(url.origin.length) );
+          }
           this.router.replaceWith( recognized.name, Object.assign( {}, recognized.params, { queryParams: recognized.queryParams }) );
         }
       } catch (e) {
@@ -85,7 +91,7 @@ export default class AuthService extends Service {
    *
    * @method ensureLogin
    */
-  async ensureLogin({identityProvider = null, clientName = "RDFlib NOW!", redirectUrl = window.location.href } = {}) {
+  async ensureLogin({identityProvider = null, clientName = "Ember Solid!", redirectUrl = window.location.href } = {}) {
     const session = await this.restoreSession();
     const isLoggedIn = session.info?.isLoggedIn;
 
@@ -95,10 +101,12 @@ export default class AuthService extends Service {
       else
         identityProvider = window.localStorage.getItem("solid-last-identity-provider");
 
-      if (!identityProvider)
-        this.router.transitionTo("login", { queryParams: { from: redirectUrl } });
+      redirectUrl = redirectUrl || window.location.href;
 
       window.localStorage.setItem("solid-auth-redirect-path", redirectUrl);
+
+      if (!identityProvider)
+        this.router.transitionTo("login", { queryParams: { from: redirectUrl } });
 
       await session.login({
         oidcIssuer: identityProvider,

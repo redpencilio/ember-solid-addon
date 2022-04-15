@@ -1,6 +1,6 @@
 {
   "name": "ember-solid",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "An Ember.js addon to quickly store data in a SOLID pod.  Probably the fastest way to create a backend.",
   "keywords": [
     "ember-addon",

@@ -59,8 +59,7 @@ export default class AuthService extends Service {
         this.store.authSession = session;
         this.store.podBase = await sessionPodBase( session );
 
-        // Perhaps enable again?
-        // window.localStorage.removeItem("solid-auth-redirect-path");
+        window.localStorage.removeItem("solid-auth-redirect-path");
         if( redirectPath ) {
           const url = new URL(redirectPath);
           let recognized;

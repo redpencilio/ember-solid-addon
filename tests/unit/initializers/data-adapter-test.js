@@ -1,7 +1,7 @@
 import Application from '@ember/application';
 
 import config from 'dummy/config/environment';
-import { initialize } from 'dummy/initializers/my-dummy-test';
+import { initialize } from 'dummy/initializers/data-adapter';
 import { module, test } from 'qunit';
 import Resolver from 'ember-resolver';
 import { run } from '@ember/runloop';

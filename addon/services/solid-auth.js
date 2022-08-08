@@ -1,21 +1,12 @@
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
-import { fetch, Session, getClientAuthenticationWithDependencies, getDefaultSession, login, handleIncomingRedirect } from '@inrupt/solid-client-authn-browser';
+import { Session, getClientAuthenticationWithDependencies } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'rdflib';
-import { SOLID } from '../utils/namespaces';
+import { LDP, RDF, SOLID, SP } from '../utils/namespaces';
 import env from 'ember-get-config';
 
 const { sym } = rdflib;
-
-async function sessionPodBase(session) {
-  // TODO: detect pod base by traversing upward
-  const webId = session.info.webId;
-  if (webId) {
-    const url = new URL(webId);
-    return `${url.origin}/${url.pathname.split('/')[1]}`;
-  }
-}
 
 /**
  *
@@ -57,7 +48,7 @@ export default class AuthService extends Service {
         const incomingRedirectResponse = await session.handleIncomingRedirect({ restorePreviousSession: true, url: window.location.href });
         console.log({incomingRedirectResponse});
         this.store.authSession = session;
-        this.store.podBase = await sessionPodBase( session );
+        this.store.podBase = await this.getPodBase(session.info.webId);
 
         window.localStorage.removeItem("solid-auth-redirect-path");
         if( redirectPath ) {
@@ -115,7 +106,7 @@ export default class AuthService extends Service {
 
       // this.session = session;
       this.store.authSession = session;
-      this.store.podBase = await sessionPodBase(session);
+      this.store.podBase = await this.getPodBase(session.info.webId);
     }
   }
 
@@ -139,12 +130,12 @@ export default class AuthService extends Service {
 
   get privateTypeIndexLocation() {
     return this.store.any(this.webIdSym, SOLID("privateTypeIndex"), undefined, this.webIdSym.doc())
-      || `#{this.podBase}/settings}/privateTypeIndex`;
+      || sym(`${this.podBase}/settings}/privateTypeIndex`);
   }
 
   get publicTypeIndexLocation() {
-    return this.story.any(this.webIdSym, SOLID("publicTypeIndex"), undefined, this.webIdSym.doc())
-      || `#{this.podBase}/settings}/publicTypeIndex`;
+    return this.store.any(this.webIdSym, SOLID("publicTypeIndex"), undefined, this.webIdSym.doc())
+      || sym(`${this.podBase}/settings}/publicTypeIndex`);
   }
 
   get webId() {
@@ -155,11 +146,45 @@ export default class AuthService extends Service {
     return sym(this.webId);
   }
 
+  /**
+   * Gets the pod base of the current user as a Promise.
+   * Will always end with a trailing slash.
+   *
+   * First, it will look for a pim:storage property on the webId.
+   * If not, it will look if the current queried resource is a pim:Storage resource, which is then our podBase.
+   * If not, it will look if the current queried resource is a lpd:BasicContainer resource, which is then our podBase.
+   * Otherwise, it will traverse upwards and do the same again.
+   *
+   * @returns {Promise<string>}
+   */
   get podBase() {
-    // TODO: detect pod base by traversing upward
-    if (this.webId) {
-      const url = new URL(this.webId);
-      return `${url.origin}/${url.pathname.split('/')[1]}`;
+    return this.getPodBase(this.webId);
+  }
+
+  async getPodBase(webId) {
+    let podBase = undefined;
+    let webIdDoc = webId;
+    if (webId) {
+      await this.store.load(sym(webId).doc());
+      podBase = this.store.any(sym(webId), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
+      // Check if podBase is not undefined and webIdDoc is not the root domain
+      let previousWebIdDoc = webIdDoc;
+      while (!podBase && !this.store.any(webIdDoc, RDF('type'), LDP('BasicContainer'), sym(webIdDoc).doc()) && !webIdDoc.endsWith('://')) {
+        // Substring of webIdDoc leaving off the last slash and last directory.
+        previousWebIdDoc = webIdDoc;
+        webIdDoc = webIdDoc.substring(0, webIdDoc.lastIndexOf('/', webIdDoc.length - 2)) + '/';
+        podBase = this.store.any(sym(webIdDoc), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
+      }
+
+      if (!podBase) {
+        podBase = previousWebIdDoc;
+      }
+      if (!podBase.endsWith('/')) {
+        podBase += '/';
+      }
+    } else {
+      console.log('No webId');
     }
+    return podBase;
   }
 }

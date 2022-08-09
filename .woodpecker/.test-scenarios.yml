@@ -1,0 +1,24 @@
+matrix:
+  scenario:
+    - ember-lts-4.4.0
+    - ember-release
+    - ember-beta
+    - ember-canary
+    - ember-classic
+    - embroider-safe
+    - embroider-optimized
+
+pipeline:
+  ${scenario}:
+    image: danlynn/ember-cli:3.24.0
+    commands:
+      - npm ci
+      - npx ember try:one ${scenario}
+    # Pipeline level conditions aren't supported yet:
+    # https://github.com/woodpecker-ci/woodpecker/issues/283
+    when:
+      event:
+        - pull_request
+
+depends_on:
+  - test

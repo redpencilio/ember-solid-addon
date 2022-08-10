@@ -105,7 +105,7 @@ export default class ForkingStore {
    */
   async load(source) {
     // TODO: should we remove our changes when a graph is being reloaded?
-    await this.fetcher.load(source);
+    await this.fetcher.load(source, { withCredentials: false });
   }
 
   /**

@@ -1,7 +1,7 @@
 import { inject as service } from '@ember/service';
 import { tracked } from '@glimmer/tracking';
 import Service from '@ember/service';
-import { Session, getClientAuthenticationWithDependencies } from '@inrupt/solid-client-authn-browser';
+import { getDefaultSession } from '@inrupt/solid-client-authn-browser';
 import rdflib from 'rdflib';
 import { LDP, RDF, SOLID, SP } from '../utils/namespaces';
 import env from 'ember-get-config';
@@ -33,12 +33,10 @@ export default class AuthService extends Service {
   router;
 
   async restoreSession() {
-    if (this.session)
+    if (this.session) {
       return this.session;
-    else {
-      const session = new Session({
-        clientAuthentication: getClientAuthenticationWithDependencies({})
-      }, 'solid-store-session');
+    } else {
+      const session = getDefaultSession();
 
       try {
         const redirectPath = window.localStorage.getItem("solid-auth-redirect-path");

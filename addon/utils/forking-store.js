@@ -411,9 +411,9 @@ export default class ForkingStore {
     // TODO: detect rejection correctly and implement
     // http://linkeddata.github.io/rdflib.js/doc/classes/updatemanager.html#update
     return new Promise((resolve, reject) => {
-      this.updater.update(
-        deletes, inserts,
-        resolve, reject);
+      this.updater.update(deletes, inserts, resolve, reject, {
+        withCredentials: false,
+      });
     });
   }
 

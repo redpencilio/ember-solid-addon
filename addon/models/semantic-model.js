@@ -251,10 +251,12 @@ function calculatePredicateForProperty(entity, propertyName) {
  *
  * @param {NamedNode[]} arr List of uris that will be in the list
  * @param {NamedNode} graph Target graph for the quad.
+ * @param options
+ * @param {boolean} options.noBlankNodes If true, create named nodes for the list.
  * @return {Quad[]} List of quads representing the list, first being the
  * head of the list.
  */
-function makeRdfListFromArray(arr, graph) {
+function makeRdfListFromArray(arr, graph, options) {
   // [nn1, nn2, nn3]
   // [Statement(_:1,rdf:first,nn1),Statement(_:1,rdf:rest,_:2),
   //  Statement(_:2,rdf:first,nn2),Statement(_:2,rdf:rest,_:3),
@@ -263,7 +265,9 @@ function makeRdfListFromArray(arr, graph) {
   let lastListNode = toNamedNode("rdf:nil");
 
   for( const arrValue of arr.reverse() ) {
-    let newListNode = new rdflib.NamedNode(`http://mu.semte.ch/vocabularies/ext/listNodes/${uuid()}`);
+    let newListNode = options.noBlankNodes
+      ? new rdflib.NamedNode(`http://mu.semte.ch/vocabularies/ext/listNodes/${uuid()}`)
+      : rdflib.blankNode();
     listStatements.unshift(
       new Statement(newListNode, toNamedNode("rdf:first"), arrValue, graph)
     );
@@ -393,7 +397,7 @@ function property(options = {}) {
               if (listHead) {
                 statementsToRemove.push(new Statement(this.uri, predicate, listHead, graph));
               }
-              let statementsToAdd = makeRdfListFromArray(value.map( (item) => item.uri ), graph);
+              let statementsToAdd = makeRdfListFromArray(value.map( (item) => item.uri ), graph, { noBlankNodes: options.noBlankNodes });
               // add reference from our object to the list
               statementsToAdd.push(new Statement(
                 this.uri,

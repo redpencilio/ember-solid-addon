@@ -292,7 +292,7 @@ function property(options = {}) {
             setRelationObject(new rdflib.Literal(value.toUTCString(), null, XSD("dateTime")));
             break;
           case "uri":
-            setRelationObject(new rdflib.NamedNode(value));
+            setRelationObject(value ? new rdflib.NamedNode(value) : undefined);
             break;
           case "belongsTo":
             const oldValue = this[propertyName];

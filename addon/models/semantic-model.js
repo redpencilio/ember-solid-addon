@@ -90,17 +90,24 @@ async function changeGraphTriples(entity, del, ins, options = {}) {
  * @param {NamedNode} head RDF term of the first cell
  * @param {NamedNode} graph Graph containing cells
  */
-function getRdfListNodes( head, store, graph ) {
+function getRdfListCells( head, store, graph ) {
   let nextHead = head;
   let matches = [];
 
-  while( nextHead && !nextHead.equal(toNamedNode("rdf:nil")) ) {
-    let nextQuad = store.match(nextHead, toNamedNode("rdf:rest"), undefined, graph);
+  while( nextHead && !toNamedNode("rdf:nil").equals(nextHead) ) {
+    let nextQuad = store.match(nextHead, toNamedNode("rdf:rest"), undefined, graph)[0];
     nextHead = nextQuad.object;
     matches.push(nextQuad);
   }
 
   return matches;
+}
+
+function getRdfListQuads( head, store, graph ) {
+  return getRdfListCells( head, store, graph )
+    .flatMap( (quad) => store.match(
+      quad.subject, undefined, undefined, graph
+    ));
 }
 
 /**
@@ -110,12 +117,13 @@ function getRdfListNodes( head, store, graph ) {
  * @param {NamedNode} head RDF term of the first cell
  * @param {NamedNode} graph Graph containing cells
  */
-function getRdfList( head, store, graph ) {
-  getRdfListNodes( head, store, graph )
+function getRdfListObjects( head, store, graph ) {
+  return getRdfListCells( head, store, graph )
     .map( (quad) => store.match(
       quad.subject,
       toNamedNode("rdf:first"),
-      undefined, graph
+      undefined,
+      graph
     )[0].object);
 }
 
@@ -184,7 +192,7 @@ function calculatePropertyValue(target, propertyName) {
             .map(({ subject }) => subject);
       } else if( options.rdfList ) {
         let listHead = target.store.match(target.uri, predicate, undefined, graph)[0]?.object;
-        matches = getRdfList(listHead, target.store, graph);
+        matches = getRdfListObjects(listHead, target.store, graph);
       } else {
         matches =
           target
@@ -255,7 +263,7 @@ function makeRdfListFromArray(arr, graph) {
   let lastListNode = toNamedNode("rdf:nil");
 
   for( const arrValue of arr.reverse() ) {
-    let newListNode = rdflib.blankNode();
+    let newListNode = new rdflib.NamedNode(`http://mu.semte.ch/vocabularies/ext/listNodes/${uuid()}`);
     listStatements.unshift(
       new Statement(newListNode, toNamedNode("rdf:first"), arrValue, graph)
     );
@@ -381,7 +389,10 @@ function property(options = {}) {
             if( options.rdfList ) {
               const store = options.store || this.store;
               let listHead = store.match(this.uri, predicate, undefined, graph)[0]?.object;
-              let statementsToRemove = getRdfListNodes(listHead, store, graph);
+              let statementsToRemove = getRdfListQuads(listHead, store, graph);
+              if (listHead) {
+                statementsToRemove.push(new Statement(this.uri, predicate, listHead, graph));
+              }
               let statementsToAdd = makeRdfListFromArray(value.map( (item) => item.uri ), graph);
               // add reference from our object to the list
               statementsToAdd.push(new Statement(

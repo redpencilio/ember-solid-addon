@@ -7,7 +7,7 @@
   <li><button role="button" {{on "click" (fn this.login "https://login.inrupt.com/")}}>inrupt</button></li>
   {{#let "" as |provider|}}
     <li>
-      <Input @value={{this.provider}} placeholder="https://your-own-pod-url.org/"/>
+      <Input @value={{this.provider}} placeholder="https://your-own-pod-url.org/" aria-label="Your own POD IDP" />
       <button role="button" {{on "click" (fn this.login this.provider)}}>Custom Login</button>
     </li>
   {{/let}}

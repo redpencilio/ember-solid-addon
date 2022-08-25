@@ -1,7 +1,7 @@
 import { tracked } from '@glimmer/tracking';
 import { get, set } from '@ember/object';
 import { XSD, RDF } from '../utils/namespaces';
-import rdflib from 'rdflib';
+import rdflib, { namedNode } from 'rdflib';
 import { toNamespace, toNamedNode } from '../utils/namespaces';
 import { v4 as uuid } from 'uuid';
 
@@ -126,6 +126,9 @@ function calculatePropertyValue(target, propertyName) {
       break;
     case "dateTime":
       value = response && new Date(response.value);
+      break;
+    case "uri":
+      value = response && namedNode(response.value);
       break;
     case "belongsTo":
       value = response && target.store.create(options.model, Object.assign({ uri: response }, createRelatedRecordOptions));

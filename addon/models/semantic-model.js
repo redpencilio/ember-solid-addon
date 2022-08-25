@@ -503,6 +503,7 @@ class SemanticModel {
 
     if (options.uri) {
       this.uri = toNamedNode(options.uri);
+      this.uuid = this.uri.value.replace(`${this.defaultGraph.value}#`, '');
     } else {
       this.uuid = this.uuid || options.uuid || uuid();
       this.uri = toNamedNode(`${this.defaultGraph.value}#${this.uuid}`);

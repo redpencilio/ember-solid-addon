@@ -481,6 +481,80 @@ class SemanticModel {
       .catch((message, uri, response) => sendAlert(message, { uri, message, response }));
   }
 
+  /**
+   * Sets the URI and UUID of the model instance.
+   * Also updates all triples in the store that reference this instance.
+   *
+   * @param {NamedNode} uri
+   */
+  setUri(uri) {
+    const delSubj = this.store.match(
+      this.uri,
+      undefined,
+      undefined,
+      graphForInstance(this)
+    );
+    const delObj = this.store.match(
+      undefined,
+      undefined,
+      this.uri,
+      graphForInstance(this)
+    );
+
+    this.uri = uri;
+    this.uuid =
+      uri.value.indexOf('#') > -1
+        ? uri.value.split('#')[1]
+        : uri.value.split('/').pop();
+
+    const insSubj = [...delSubj].map(
+      (st) =>
+        new Statement(this.uri, st.predicate, st.object, graphForInstance(this))
+    );
+    const insObj = [...delObj].map(
+      (st) =>
+        new Statement(
+          st.subject,
+          st.predicate,
+          this.uri,
+          graphForInstance(this)
+        )
+    );
+    changeGraphTriples(this, delSubj.concat(delObj), insSubj.concat(insObj))
+      .then((uri, message) => console.log(`Success updating: ${message}`))
+      .catch((message, uri, response) =>
+        sendAlert(message, { uri, message, response })
+      );
+  }
+
+  /**
+   * Sets the RDF type of the model instance.
+   *
+   * @param {NamedNode} rdfType
+   */
+  setRdfType(rdfType) {
+    const del = this.store.match(
+      this.uri,
+      RDF('type'),
+      this.rdfType,
+      graphForInstance(this)
+    );
+
+    this.rdfType = rdfType;
+
+    const ins = [
+      new Statement(
+        this.uri,
+        RDF('type'),
+        this.rdfType,
+        graphForInstance(this)
+      ),
+    ];
+    changeGraphTriples(this, del, ins)
+      .then((uri, message) => console.log(`Success updating: ${message}`))
+      .catch((message, uri, response) => sendAlert(message, { uri, message, response }));
+  }
+
   // @service(env.rdfStore.name) store;
 
   constructor(options = {}) {

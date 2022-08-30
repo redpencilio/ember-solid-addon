@@ -36,7 +36,7 @@
     "ember-cli-htmlbars": "^6.0.1",
     "ember-cli-update": "^1.0.1",
     "ember-get-config": "^1.0.2",
-    "rdflib": "^2.2.19",
+    "rdflib": "^2.2.20",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

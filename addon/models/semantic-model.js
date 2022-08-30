@@ -391,25 +391,42 @@ function property(options = {}) {
               value && updatePropertyValue(value, options.inverseProperty);
             }
             break;
-        case "hasMany":
+          case "hasMany":
+            const isNull = value === null || value === undefined;
             value = value || []; // ensure the value is an array, even if
-            if( options.rdfList ) {
+            if (options.rdfList) {
               const store = options.store || this.store;
-              let listHead = store.match(this.uri, predicate, undefined, graph)[0]?.object;
-              let statementsToRemove = getRdfListQuads(listHead, store, graph);
-              if (listHead) {
-                statementsToRemove.push(new Statement(this.uri, predicate, listHead, graph));
-              }
-              let statementsToAdd = makeRdfListFromArray(value.map( (item) => item.uri ), graph, { noBlankNodes: options.noBlankNodes });
-              // add reference from our object to the list
-              statementsToAdd.push(new Statement(
+              let listHead = store.match(
                 this.uri,
                 predicate,
-                statementsToAdd.length
-                  ? statementsToAdd[0].subject
-                  : toNamedNode("rdf:nil"),
+                undefined,
                 graph
-              ));
+              )[0]?.object;
+              let statementsToRemove = getRdfListQuads(listHead, store, graph);
+              if (listHead) {
+                statementsToRemove.push(
+                  new Statement(this.uri, predicate, listHead, graph)
+                );
+              }
+              let statementsToAdd = [];
+              if (!isNull) {
+                statementsToAdd = makeRdfListFromArray(
+                  value.map((item) => item.uri),
+                  graph,
+                  { noBlankNodes: options.noBlankNodes }
+                );
+                // add reference from our object to the list
+                statementsToAdd.push(
+                  new Statement(
+                    this.uri,
+                    predicate,
+                    statementsToAdd.length
+                      ? statementsToAdd[0].subject
+                      : toNamedNode('rdf:nil'),
+                    graph
+                  )
+                );
+              }
 
               changeGraphTriples( this, statementsToRemove, statementsToAdd )
                 .then((_uri, message, _response) => console.log(`Success updating: ${message}`))

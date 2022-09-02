@@ -5,12 +5,10 @@
   <li><button role="button" {{on "click" (fn this.login "https://solid.redpencil.io/")}}>redpencil.io</button></li>
   <li><button role="button" {{on "click" (fn this.login "https://solidweb.org/")}}>solidweb.org</button></li>
   <li><button role="button" {{on "click" (fn this.login "https://pod.inrupt.com/")}}>inrupt</button></li>
-  {{#let "" as |provider|}}
-    <li>
-      <Input @value={{this.provider}} placeholder="https://your-own-pod-url.org/" aria-label="Your own POD IDP" />
-      <button role="button" {{on "click" (fn this.login this.provider)}}>Custom Login</button>
-    </li>
-  {{/let}}
+  <li>
+    <Input @value={{this.provider}} placeholder="https://your-own-pod-url.org/" aria-label="Your own POD IDP" />
+    <button role="button" {{on "click" (fn this.login this.provider)}}>Custom Login</button>
+  </li>
 </ul>
 
 {{outlet}}

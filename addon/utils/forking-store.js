@@ -290,11 +290,7 @@ export default class ForkingStore {
    */
   removeMatches(subject, predicate, object, graph) {
     // TODO: this should go through forking methods
-    while( this.graph.match(subject, predicate, object, graph).length !== 0 ) {
-      this.graph.removeStatements(
-        this.graph.match(subject, predicate, object, graph)
-      );
-    }
+    this.graph.removeMany(subject, predicate, object, graph);
   }
 
   /**

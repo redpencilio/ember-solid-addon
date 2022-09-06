@@ -101,10 +101,16 @@ export default class ForkingStore {
   /**
    * Load data from an external graph.
    * @param {NamedNode} source the online source from which the triples will be loaded into local store.
+   * @param override whether to clear all current changes in this graph before loading from the server.
    * @memberof {ForkingStore}
    */
-  async load(source) {
-    // TODO: should we remove our changes when a graph is being reloaded?
+  async load(source, override = false) {
+    if (override) {
+      // clear the graph and then refill it
+      this.graph.removeMany(null, null, null, source);
+      this.removeMatches(null, null, null, addGraphFor(source));
+      this.removeMatches(null, null, null, delGraphFor(source));
+    }
 
     // This try/catch is a temporary workaround for a bug in ESS 2 where no `Accept-*` headers are currently sent.
     // Once this bug is fixed, this try/catch can be removed.
@@ -113,7 +119,7 @@ export default class ForkingStore {
       await this.fetcher.load(source, { withCredentials: false, method: 'OPTIONS' });
     } catch (_) {}
 
-    await this.fetcher.load(source, { withCredentials: false, method: 'GET', force: true });
+    await this.fetcher.load(source, { withCredentials: false, method: 'GET', force: true });  // replace `true` with `override` once the above code for the workaround is removed again.
   }
 
   /**

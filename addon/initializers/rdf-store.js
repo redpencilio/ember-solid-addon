@@ -88,7 +88,10 @@ class StoreService extends Service {
   addAll() { return this.store.addAll(...arguments); }
   removeStatements() { return this.store.removeStatements(...arguments); }
   removeMatches() { return this.store.removeMatches(...arguments); }
-  async load(source, override) { return await this.store.load(source, override); }
+  async load(source, override) {
+    if (override) this.storeCache = {};
+    return await this.store.load(source, override);
+  }
   async update(deletes, inserts) { return await this.store.update(deletes, inserts); }
   async persist() { return await this.store.persist(); }
 

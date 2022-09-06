@@ -88,7 +88,7 @@ class StoreService extends Service {
   addAll() { return this.store.addAll(...arguments); }
   removeStatements() { return this.store.removeStatements(...arguments); }
   removeMatches() { return this.store.removeMatches(...arguments); }
-  async load(source) { return await this.store.load(source); }
+  async load(source, override) { return await this.store.load(source, override); }
   async update(deletes, inserts) { return await this.store.update(deletes, inserts); }
   async persist() { return await this.store.persist(); }
 
@@ -200,10 +200,11 @@ class StoreService extends Service {
    * Fetches the graph for a specific model (type)
    *
    * @param {String} model The given model
+   * @param override whether to force reload of the model.
    *
    * @method
    */
-  async fetchGraphForType(model) {
+  async fetchGraphForType(model, override = false) {
     const klass = classForModel(getOwner(this), model);
     if (!klass.rdfType)
       console.error(`Tried to fetch all instances of ${model} but it has no @rdfType annotation.`);
@@ -211,7 +212,7 @@ class StoreService extends Service {
     const sourceGraph = this.discoverDefaultGraphByType(klass);
 
     try {
-      await this.load(sourceGraph);
+      await this.load(sourceGraph, override);
     } catch (e) {
       console.log(`Failed to fetch ${sourceGraph.value}`);
       console.log(e);

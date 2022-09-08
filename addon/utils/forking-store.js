@@ -105,7 +105,15 @@ export default class ForkingStore {
    */
   async load(source) {
     // TODO: should we remove our changes when a graph is being reloaded?
-    await this.fetcher.load(source);
+
+    // This try/catch is a temporary workaround for a bug in ESS 2 where no `Accept-*` headers are currently sent.
+    // Once this bug is fixed, this try/catch can be removed.
+    // See https://forum.solidproject.org/t/requesting-access-as-ess-authenticated-application/5538/25?u=smessie
+    try {
+      await this.fetcher.load(source, { withCredentials: false, method: 'OPTIONS' });
+    } catch (_) {}
+
+    await this.fetcher.load(source, { withCredentials: false, method: 'GET', force: true });
   }
 
   /**

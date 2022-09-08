@@ -1,6 +1,6 @@
 {
   "name": "ember-solid",
-  "version": "0.3.1",
+  "version": "0.3.2-beta.0",
   "description": "An Ember.js addon to quickly store data in a SOLID pod.  Probably the fastest way to create a backend.",
   "keywords": [
     "ember-addon",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@glimmer/tracking": "^1.0.4",
-    "@inrupt/solid-client-authn-browser": "^1.11.7",
+    "@inrupt/solid-client-authn-browser": "^1.12.2",
     "ember-auto-import": "^2.4.0",
     "ember-cli-babel": "^7.26.11",
     "ember-cli-htmlbars": "^6.0.1",

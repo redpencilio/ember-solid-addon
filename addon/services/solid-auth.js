@@ -34,6 +34,8 @@ export default class AuthService extends Service {
     const session = this.session;
     return session?.info?.isLoggedIn;
   }
+  solidLastIdentityProviderKey = "solid-last-identity-provider";
+  solidAuthRedirectPathKey = "solid-auth-redirect-path";
 
   @service(env.rdfStore.name)
   store;
@@ -50,16 +52,16 @@ export default class AuthService extends Service {
       }, 'solid-store-session');
 
       try {
-        const redirectPath = window.localStorage.getItem("solid-auth-redirect-path");
+        const redirectPath = window.localStorage.getItem(this.solidAuthRedirectPathKey);
         if( !redirectPath )
-          window.localStorage.setItem("solid-auth-redirect-path", window.location.href);
+          window.localStorage.setItem(this.solidAuthRedirectPathKey, window.location.href);
 
         const incomingRedirectResponse = await session.handleIncomingRedirect({ restorePreviousSession: true, url: window.location.href });
         console.log({incomingRedirectResponse});
         this.store.authSession = session;
         this.store.podBase = await sessionPodBase( session );
 
-        window.localStorage.removeItem("solid-auth-redirect-path");
+        window.localStorage.removeItem(this.solidAuthRedirectPathKey);
         if( redirectPath ) {
           const url = new URL(redirectPath);
           let recognized;
@@ -96,13 +98,13 @@ export default class AuthService extends Service {
 
     if( !isLoggedIn ) {
       if (identityProvider)
-        window.localStorage.setItem("solid-last-identity-provider", identityProvider);
+        window.localStorage.setItem(this.solidLastIdentityProviderKey, identityProvider);
       else
-        identityProvider = window.localStorage.getItem("solid-last-identity-provider");
+        identityProvider = window.localStorage.getItem(this.solidLastIdentityProviderKey);
 
       redirectUrl = redirectUrl || window.location.href;
 
-      window.localStorage.setItem("solid-auth-redirect-path", redirectUrl);
+      window.localStorage.setItem(this.solidAuthRedirectPathKey, redirectUrl);
 
       if (!identityProvider)
         this.router.transitionTo("login", { queryParams: { from: redirectUrl } });
@@ -117,6 +119,20 @@ export default class AuthService extends Service {
       this.store.authSession = session;
       this.store.podBase = await sessionPodBase(session);
     }
+  }
+
+  /**
+   * Logs out of the current solid-pod.
+   *
+   * @method ensureLogout
+   */
+  async ensureLogout(){
+    const session = await this.restoreSession();
+    const isLoggedIn = session.info?.isLoggedIn;
+    if( isLoggedIn ) {
+      await session.logout();
+    }
+    window.localStorage.removeItem(this.solidLastIdentityProviderKey);
   }
 
   /**

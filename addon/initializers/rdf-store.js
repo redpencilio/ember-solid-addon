@@ -115,6 +115,11 @@ class StoreService extends Service {
     createOptions.modelName = model;
     // console.log(createOptions)
     const instance = new klass(createOptions);
+    // If there are now 2 type triples for the instance, remove the default one added by the class constructor.
+    // Happens if a non-default rdf-type is set in the options.
+    if (this.store.match(instance.uri, RDF('type'), undefined).length > 1) {
+      this.removeMatches(instance.uri, RDF('type'), klass.rdfType);
+    }
     // console.log(instance);
     setOwner(instance, owner);
     this.storeCacheForModel(model).push(instance);
@@ -174,6 +179,7 @@ class StoreService extends Service {
    *
    * @param {String} model The given model
    * @param {Object} options options
+   * @param {String} options.rdfType The RDF type of the instances to return
    *
    * @method
    */
@@ -184,11 +190,16 @@ class StoreService extends Service {
     if (!klass.rdfType)
       console.error(`Tried to fetch all instances of ${model} but it has no @rdfType annotation.`);
 
-    const sourceGraph = this.discoverDefaultGraphByType(klass);
+    let rdfType = klass.rdfType;
+    if (options?.rdfType) {
+      rdfType = options.rdfType;
+    }
+
+    const sourceGraph = this.discoverDefaultGraphByType(klass, rdfType);
 
     return this
-      .match(undefined, RDF("type"), klass.rdfType, sourceGraph)
-      .map(({ subject }) => this.create(model, { uri: subject }));
+      .match(undefined, RDF("type"), rdfType, sourceGraph)
+      .map(({ subject }) => this.create(model, { uri: subject, rdfType }));
   }
 
   classForModel(model) {
@@ -223,14 +234,15 @@ class StoreService extends Service {
    * Returns the graph of a model (type)
    *
    * @param constructor Constructor of a model
+   * @param rdfType
    */
-  discoverDefaultGraphByType(constructor) {
+  discoverDefaultGraphByType(constructor, rdfType = constructor.rdfType) {
     let discoveredSolidGraph = null;
 
     if (constructor.solid?.private)
-      discoveredSolidGraph = findTypeRegistrationInGraph(constructor.rdfType, this, this.privateTypeIndex);
+      discoveredSolidGraph = findTypeRegistrationInGraph(rdfType, this, this.privateTypeIndex);
     else
-      discoveredSolidGraph = findTypeRegistrationInGraph(constructor.rdfType, this, this.publicTypeIndex);
+      discoveredSolidGraph = findTypeRegistrationInGraph(rdfType, this, this.publicTypeIndex);
 
     // TODO: if a defaultStorageLocation was set, and the type was not
     // found in the type index, write the storage location the correct

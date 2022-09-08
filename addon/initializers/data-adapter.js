@@ -186,11 +186,14 @@ class SemanticDataAdapter extends DebugDataAdapter {
   }
 }
 
-export default {
-  name: "data-adapter",
-  after: "rdf-store",
-  initialize( application ) {
-    if( env.rdfStore.enableDataAdapter )
-      application.register('data-adapter:main', SemanticDataAdapter);
+export function initialize(application) {
+  if (env.rdfStore.enableDataAdapter) {
+    application.register('data-adapter:main', SemanticDataAdapter);
   }
+}
+
+export default {
+  name: 'data-adapter',
+  after: 'rdf-store',
+  initialize,
 };

@@ -1,0 +1,12 @@
+pipeline:
+  release:
+    image: plugins/npm
+    settings:
+      token:
+        from_secret: npm_access_token
+
+    # Pipeline level conditions aren't supported yet:
+    # https://github.com/woodpecker-ci/woodpecker/issues/283
+    when:
+      event: tag
+      tag: v*

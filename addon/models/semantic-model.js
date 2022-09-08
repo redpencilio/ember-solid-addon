@@ -110,8 +110,14 @@ function calculatePropertyValue(target, propertyName) {
           .match(target.uri, predicate, undefined, graph)
           .map(({ object }) => object.value);
       break;
+    case "decimal":
+      value = response && parseFloat(response.value);
+      break;
     case "integer":
       value = response && parseInt(response.value);
+      break;
+    case "float":
+      value = response && parseFloat(response.value);
       break;
     case "boolean":
       if (response === undefined) {
@@ -270,8 +276,14 @@ function property(options = {}) {
               [...stringsToAdd].map( (str) => new rdflib.Statement(this.uri, predicate, new rdflib.Literal(str), graph)));
 
             break;
-          case "integer":
+          case "decimal":
             setRelationObject(new rdflib.Literal(value, null, XSD("decimal")));
+            break;
+          case "integer":
+            setRelationObject(new rdflib.Literal(value, null, XSD("integer")));
+            break;
+          case "float":
+            setRelationObject(new rdflib.Literal(value, null, XSD("float")));
             break;
           case "boolean":
             setRelationObject(new rdflib.Literal(value ? "true" : "false", null, XSD("boolean")));
@@ -381,12 +393,34 @@ function uri(options = {}) {
 
 /**
  *
+ * Creates an decimal property
+ *
+ * @param {Object} options Options
+ */
+function decimal(options = {}) {
+  options.type = "decimal";
+  return property(options);
+}
+
+/**
+ *
  * Creates an integer property
  *
  * @param {Object} options Options
  */
 function integer(options = {}) {
   options.type = "integer";
+  return property(options);
+}
+
+/**
+ *
+ * Creates a float property
+ *
+ * @param {Object} options Options
+ */
+function float(options = {}) {
+  options.type = "float";
   return property(options);
 }
 
@@ -601,5 +635,5 @@ function solid(options) {
 }
 
 export default SemanticModel;
-export { property, string, stringSet, uri, integer, boolean, dateTime, hasMany, belongsTo, term, solid };
+export { property, string, stringSet, uri, decimal, integer, float, boolean, dateTime, hasMany, belongsTo, term, solid };
 export { rdfType, defaultGraph, autosave };

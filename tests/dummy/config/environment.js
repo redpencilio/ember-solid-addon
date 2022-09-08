@@ -16,7 +16,7 @@ module.exports = function (environment) {
         Date: false,
       },
     },
-    RSTORE: {
+    rdfStore: {
       name: "store"
     },
 

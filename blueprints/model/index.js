@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = {
-  description: 'Generate a new model'
+  description: 'Generate a new model',
 };

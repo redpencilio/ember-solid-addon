@@ -3,16 +3,15 @@ import { inject as service } from '@ember/service';
 import Component from '@glimmer/component';
 import { getOwner } from '@ember/application';
 
-
 export default class SolidAutoLoginComponent extends Component {
-  @service("solid-auth") auth;
+  @service('solid-auth') auth;
 
-  constructor(){
+  constructor() {
     super(...arguments);
     this.initializeLoginAndAuth();
   }
 
-  async initializeLoginAndAuth(){
+  async initializeLoginAndAuth() {
     await this.auth.ensureLogin();
     await this.auth.ensureTypeIndex();
   }

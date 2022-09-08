@@ -6,7 +6,7 @@ import SemanticModel from '../models/semantic-model';
 import { updateEmberArray } from '../utils/array-helpers';
 import env from 'ember-get-config';
 
-import { A } from "@ember/array";
+import { A } from '@ember/array';
 import ArrayProxy from '@ember/array/proxy';
 
 /**
@@ -72,13 +72,12 @@ class SemanticDataAdapter extends DebugDataAdapter {
 
   observersByRecord = {};
 
-  constructor(){
+  constructor() {
     super(...arguments);
 
-    this.store.addChangeListener( (kind) => {
-      this.updateRecordsByType( kind );
-    } );
-
+    this.store.addChangeListener((kind) => {
+      this.updateRecordsByType(kind);
+    });
   }
 
   /**
@@ -89,45 +88,45 @@ class SemanticDataAdapter extends DebugDataAdapter {
   */
   getModelTypes() {
     var self = this;
-    var containerDebugAdapter = this.get('containerDebugAdapter');
+    var containerDebugAdapter = this.containerDebugAdapter;
     var types;
 
     types = containerDebugAdapter.catalogEntriesByType('model');
 
     // New adapters return strings instead of classes
-    types = A(types).map(function(name) {
+    types = A(types).map(function (name) {
       return {
         klass: self._nameToClass(name),
-        name: name
+        name: name,
       };
     });
-    types = A(types).filter(function(type) {
+    types = A(types).filter(function (type) {
       return self.detect(type.klass);
     });
 
     return A(types);
   }
 
-  detect( klass ) {
+  detect(klass) {
     return klass && klass.prototype instanceof SemanticModel; // || klass === SemanticModel;
   }
 
-  getRecords( type ) {
-    const typeName =
-          this
-          .getModelTypes()
-          .find( ({ klass }) => klass === type )
-          .name;
+  getRecords(type) {
+    const typeName = this.getModelTypes().find(
+      ({ klass }) => klass === type
+    ).name;
 
-    this.updateRecordsByType( typeName );
+    this.updateRecordsByType(typeName);
     return this.recordsByTypeInEmberArr[typeName];
   }
 
-  updateRecordsByType( typeName ) {
-    const records = this.get('store').storeCacheForModel( typeName );
-    const arrProxy = this.recordsByTypeInEmberArr[typeName] || ArrayProxy.create({ content: A() });
+  updateRecordsByType(typeName) {
+    const records = this.store.storeCacheForModel(typeName);
+    const arrProxy =
+      this.recordsByTypeInEmberArr[typeName] ||
+      ArrayProxy.create({ content: A() });
 
-    updateEmberArray( arrProxy, records );
+    updateEmberArray(arrProxy, records);
     this.recordsByTypeInEmberArr[typeName] = arrProxy;
   }
 
@@ -141,12 +140,14 @@ class SemanticDataAdapter extends DebugDataAdapter {
   */
   columnsForType(type, options) {
     options = options ? options : { limit: true };
-    const base = [ { name: "uri", desc: "URI" } ];
-    if( type.prototype && type.prototype.attributes ) {
-      type.prototype.attributes.forEach( (attr) => base.push( { name: attr, desc: attr } ) );
+    const base = [{ name: 'uri', desc: 'URI' }];
+    if (type.prototype && type.prototype.attributes) {
+      type.prototype.attributes.forEach((attr) =>
+        base.push({ name: attr, desc: attr })
+      );
     }
-    if( options.limit ) {
-      return base.slice( 0, MAX_TABLE_PROPERTIES );
+    if (options.limit) {
+      return base.slice(0, MAX_TABLE_PROPERTIES);
     } else {
       return base;
     }
@@ -162,13 +163,11 @@ class SemanticDataAdapter extends DebugDataAdapter {
     const columnValues = {};
 
     columns
-      .map( ({name}) => name )
-      .forEach( (name) => {
-        if( name === "uri" )
-          columnValues[name] = get( record, `${name}.value` );
-        else
-          columnValues[name] = get( record, name );
-      } );
+      .map(({ name }) => name)
+      .forEach((name) => {
+        if (name === 'uri') columnValues[name] = get(record, `${name}.value`);
+        else columnValues[name] = get(record, name);
+      });
 
     return columnValues;
   }
@@ -176,12 +175,13 @@ class SemanticDataAdapter extends DebugDataAdapter {
   observeRecord(record, observer) {
     const self = this;
     const observers = this.observersByRecord[record] || [];
-    const newObserver = (updatedInstance) => observer(self.wrapRecord( updatedInstance ));
-    observers.push( newObserver );
-    record.addChangeListener( newObserver );
-    return function(){
-      for( let oldObserver of self.observersByRecord[record] || [] )
-        record.removeChangeListener( oldObserver );
+    const newObserver = (updatedInstance) =>
+      observer(self.wrapRecord(updatedInstance));
+    observers.push(newObserver);
+    record.addChangeListener(newObserver);
+    return function () {
+      for (let oldObserver of self.observersByRecord[record] || [])
+        record.removeChangeListener(oldObserver);
     };
   }
 }

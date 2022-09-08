@@ -236,9 +236,17 @@ class StoreService extends Service {
     // found in the type index, write the storage location the correct
     // type index.
 
-    let absoluteGraph = constructor.solid?.defaultStorageLocation
-      && this.podBase
-      && namedNode(`${this.podBase}${constructor.solid.defaultStorageLocation}`);
+    let absoluteGraph;
+    if (constructor.solid?.defaultStorageLocation) {
+      if (
+        constructor.solid.defaultStorageLocation.startsWith('http://') ||
+        constructor.solid.defaultStorageLocation.startsWith('https://')
+      ) {
+        absoluteGraph = namedNode(constructor.solid.defaultStorageLocation);
+      } else {
+        absoluteGraph = this.podBase && namedNode(`${this.podBase}${constructor.solid.defaultStorageLocation}`);
+      }
+    }
 
     return discoveredSolidGraph || absoluteGraph || constructor.defaultGraph;
   }

@@ -1,6 +1,6 @@
 pipeline:
   test:
-    image: danlynn/ember-cli:3.24.0
+    image: danlynn/ember-cli:4.4.0
     commands:
       - npm ci
       - npm run lint:js

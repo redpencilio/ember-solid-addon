@@ -25,8 +25,8 @@ export default class AuthService extends Service {
     const session = this.session;
     return session?.info?.isLoggedIn;
   }
-  solidLastIdentityProviderKey = "solid-last-identity-provider";
-  solidAuthRedirectPathKey = "solid-auth-redirect-path";
+  solidLastIdentityProviderKey = 'solid-last-identity-provider';
+  solidAuthRedirectPathKey = 'solid-auth-redirect-path';
 
   @service(env.rdfStore.name)
   store;
@@ -41,25 +41,40 @@ export default class AuthService extends Service {
       const session = getDefaultSession();
 
       try {
-        const redirectPath = window.localStorage.getItem(this.solidAuthRedirectPathKey);
-        if( !redirectPath )
-          window.localStorage.setItem(this.solidAuthRedirectPathKey, window.location.href);
+        const redirectPath = window.localStorage.getItem(
+          this.solidAuthRedirectPathKey
+        );
+        if (!redirectPath)
+          window.localStorage.setItem(
+            this.solidAuthRedirectPathKey,
+            window.location.href
+          );
 
-        const incomingRedirectResponse = await session.handleIncomingRedirect({ restorePreviousSession: true, url: window.location.href });
-        console.log({incomingRedirectResponse});
+        const incomingRedirectResponse = await session.handleIncomingRedirect({
+          restorePreviousSession: true,
+          url: window.location.href,
+        });
+        console.log({ incomingRedirectResponse });
         this.store.authSession = session;
         this.store.podBase = await this.getPodBase(session.info.webId);
 
         window.localStorage.removeItem(this.solidAuthRedirectPathKey);
-        if( redirectPath ) {
+        if (redirectPath) {
           const url = new URL(redirectPath);
           let recognized;
-          if( this.router.location.implementation == "hash" ) {
-            recognized = this.router.recognize( url.hash.slice(1) );
+          if (this.router.location.implementation == 'hash') {
+            recognized = this.router.recognize(url.hash.slice(1));
           } else {
-            recognized = this.router.recognize( url.href.slice(url.origin.length) );
+            recognized = this.router.recognize(
+              url.href.slice(url.origin.length)
+            );
           }
-          this.router.replaceWith( recognized.name, Object.assign( {}, recognized.params, { queryParams: recognized.queryParams }) );
+          this.router.replaceWith(
+            recognized.name,
+            Object.assign({}, recognized.params, {
+              queryParams: recognized.queryParams,
+            })
+          );
         }
       } catch (e) {
         console.error(`Failed to log in: ${e}`);
@@ -71,7 +86,7 @@ export default class AuthService extends Service {
   }
 
   @service
-  router
+  router;
 
   /**
    *
@@ -81,27 +96,38 @@ export default class AuthService extends Service {
    *
    * @method ensureLogin
    */
-  async ensureLogin({identityProvider = null, clientName = "Ember Solid!", redirectUrl = window.location.href } = {}) {
+  async ensureLogin({
+    identityProvider = null,
+    clientName = 'Ember Solid!',
+    redirectUrl = window.location.href,
+  } = {}) {
     const session = await this.restoreSession();
     const isLoggedIn = session.info?.isLoggedIn;
 
-    if( !isLoggedIn ) {
+    if (!isLoggedIn) {
       if (identityProvider)
-        window.localStorage.setItem(this.solidLastIdentityProviderKey, identityProvider);
+        window.localStorage.setItem(
+          this.solidLastIdentityProviderKey,
+          identityProvider
+        );
       else
-        identityProvider = window.localStorage.getItem(this.solidLastIdentityProviderKey);
+        identityProvider = window.localStorage.getItem(
+          this.solidLastIdentityProviderKey
+        );
 
       redirectUrl = redirectUrl || window.location.href;
 
       window.localStorage.setItem(this.solidAuthRedirectPathKey, redirectUrl);
 
       if (!identityProvider)
-        this.router.transitionTo("login", { queryParams: { from: redirectUrl } });
+        this.router.transitionTo('login', {
+          queryParams: { from: redirectUrl },
+        });
 
       await session.login({
         oidcIssuer: identityProvider,
         redirectUrl,
-        clientName
+        clientName,
       });
 
       // this.session = session;
@@ -115,10 +141,10 @@ export default class AuthService extends Service {
    *
    * @method ensureLogout
    */
-  async ensureLogout(){
+  async ensureLogout() {
     const session = await this.restoreSession();
     const isLoggedIn = session.info?.isLoggedIn;
-    if( isLoggedIn ) {
+    if (isLoggedIn) {
       await session.logout();
     }
     window.localStorage.removeItem(this.solidLastIdentityProviderKey);
@@ -143,13 +169,25 @@ export default class AuthService extends Service {
   }
 
   get privateTypeIndexLocation() {
-    return this.store.any(this.webIdSym, SOLID("privateTypeIndex"), undefined, this.webIdSym.doc())
-      || sym(`${this.podBase}/settings}/privateTypeIndex`);
+    return (
+      this.store.any(
+        this.webIdSym,
+        SOLID('privateTypeIndex'),
+        undefined,
+        this.webIdSym.doc()
+      ) || sym(`${this.podBase}/settings}/privateTypeIndex`)
+    );
   }
 
   get publicTypeIndexLocation() {
-    return this.store.any(this.webIdSym, SOLID("publicTypeIndex"), undefined, this.webIdSym.doc())
-      || sym(`${this.podBase}/settings}/publicTypeIndex`);
+    return (
+      this.store.any(
+        this.webIdSym,
+        SOLID('publicTypeIndex'),
+        undefined,
+        this.webIdSym.doc()
+      ) || sym(`${this.podBase}/settings}/publicTypeIndex`)
+    );
   }
 
   get webId() {
@@ -180,14 +218,51 @@ export default class AuthService extends Service {
     let webIdDoc = webId;
     if (webId) {
       await this.store.load(sym(webId).doc());
-      podBase = this.store.any(sym(webId), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
+      podBase =
+        this.store.any(
+          sym(webId),
+          SP('storage'),
+          undefined,
+          sym(webIdDoc).doc()
+        )?.value ||
+        this.store.any(
+          undefined,
+          RDF('type'),
+          SP('Storage'),
+          sym(webIdDoc).doc()
+        )?.value;
       // Check if podBase is not undefined and webIdDoc is not the root domain
       let previousWebIdDoc = webIdDoc;
-      while (!podBase && !this.store.any(webIdDoc, RDF('type'), LDP('BasicContainer'), sym(webIdDoc).doc()) && !webIdDoc.endsWith('://')) {
+      while (
+        !podBase &&
+        !this.store.any(
+          webIdDoc,
+          RDF('type'),
+          LDP('BasicContainer'),
+          sym(webIdDoc).doc()
+        ) &&
+        !webIdDoc.endsWith('://')
+      ) {
         // Substring of webIdDoc leaving off the last slash and last directory.
         previousWebIdDoc = webIdDoc;
-        webIdDoc = webIdDoc.substring(0, webIdDoc.lastIndexOf('/', webIdDoc.length - 2)) + '/';
-        podBase = this.store.any(sym(webIdDoc), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
+        webIdDoc =
+          webIdDoc.substring(
+            0,
+            webIdDoc.lastIndexOf('/', webIdDoc.length - 2)
+          ) + '/';
+        podBase =
+          this.store.any(
+            sym(webIdDoc),
+            SP('storage'),
+            undefined,
+            sym(webIdDoc).doc()
+          )?.value ||
+          this.store.any(
+            undefined,
+            RDF('type'),
+            SP('Storage'),
+            sym(webIdDoc).doc()
+          )?.value;
       }
 
       if (!podBase) {

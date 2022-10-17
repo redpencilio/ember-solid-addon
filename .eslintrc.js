@@ -19,7 +19,10 @@ module.exports = {
   env: {
     browser: true,
   },
-  rules: {},
+  rules: {
+    'no-unused-vars': 'off',
+    'no-case-declarations': 'off',
+  },
   overrides: [
     // node files
     {

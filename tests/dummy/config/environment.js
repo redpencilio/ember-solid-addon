@@ -17,7 +17,7 @@ module.exports = function (environment) {
       },
     },
     rdfStore: {
-      name: "store"
+      name: 'store',
     },
 
     APP: {

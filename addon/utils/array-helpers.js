@@ -7,7 +7,6 @@ function updateEmberArray(arrayProxy, newValues) {
 
   arrayProxy.removeObjects(Array.from(removeSet));
   arrayProxy.addObjects(Array.from(addSet));
-
 }
 
 export { updateEmberArray };

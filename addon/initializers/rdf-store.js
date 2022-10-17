@@ -28,16 +28,17 @@ function classForModel(owner, model) {
  */
 function findTypeRegistrationInGraph(type, store, typeGraph) {
   return store
-    .match(undefined, RDF("type"), SOLID("TypeRegistration"), typeGraph)
+    .match(undefined, RDF('type'), SOLID('TypeRegistration'), typeGraph)
     .map(({ subject: typeIndexSpec }) => {
-      const hasProjectType =
-        store
-          .match(typeIndexSpec, SOLID("forClass"), undefined, typeGraph)
-          .filter(({ object }) => object.value == type.value)
-          .length;
-      const location =
-        store
-          .any(typeIndexSpec, SOLID("instance"), undefined, typeGraph);
+      const hasProjectType = store
+        .match(typeIndexSpec, SOLID('forClass'), undefined, typeGraph)
+        .filter(({ object }) => object.value == type.value).length;
+      const location = store.any(
+        typeIndexSpec,
+        SOLID('instance'),
+        undefined,
+        typeGraph
+      );
 
       return hasProjectType ? location : false;
     })
@@ -60,7 +61,7 @@ function findTypeRegistrationInGraph(type, store, typeGraph) {
 class StoreService extends Service {
   store = null;
 
-  storeCache = {}
+  storeCache = {};
 
   changeListeners = new Set();
 
@@ -72,25 +73,45 @@ class StoreService extends Service {
   constructor() {
     super(...arguments);
 
-    this.store = new ForkableStore( { fetch: this.fetch.bind(this) } );
+    this.store = new ForkableStore({ fetch: this.fetch.bind(this) });
   }
 
   async fetch() {
-    if( this.authSession && this.authSession.info && this.authSession.info.webId ) {
+    if (
+      this.authSession &&
+      this.authSession.info &&
+      this.authSession.info.webId
+    ) {
       return await this.authSession.fetch(...arguments);
     } else {
-      return await fetch( ...arguments );
+      return await fetch(...arguments);
     }
   }
 
-  match() { return this.store.match(...arguments); }
-  any() { return this.store.any(...arguments); }
-  addAll() { return this.store.addAll(...arguments); }
-  removeStatements() { return this.store.removeStatements(...arguments); }
-  removeMatches() { return this.store.removeMatches(...arguments); }
-  async load(source) { return await this.store.load(source); }
-  async update(deletes, inserts) { return await this.store.update(deletes, inserts); }
-  async persist() { return await this.store.persist(); }
+  match() {
+    return this.store.match(...arguments);
+  }
+  any() {
+    return this.store.any(...arguments);
+  }
+  addAll() {
+    return this.store.addAll(...arguments);
+  }
+  removeStatements() {
+    return this.store.removeStatements(...arguments);
+  }
+  removeMatches() {
+    return this.store.removeMatches(...arguments);
+  }
+  async load(source) {
+    return await this.store.load(source);
+  }
+  async update(deletes, inserts) {
+    return await this.store.update(deletes, inserts);
+  }
+  async persist() {
+    return await this.store.persist();
+  }
 
   /**
    *
@@ -154,19 +175,19 @@ class StoreService extends Service {
    * @method
    */
   peekInstance(model, uri) {
-    if (!uri)
-      uri = model;
+    if (!uri) uri = model;
 
     const uriValue = uri.value ? uri.value : uri;
 
     if (model) {
-      return this
-        .storeCacheForModel(model)
-        .find((obj) => obj.uri.value === uriValue);
+      return this.storeCacheForModel(model).find(
+        (obj) => obj.uri.value === uriValue
+      );
     } else {
       for (let key in this.storeCache) {
-        let matchingInstance =
-          this.storeCache[key].find((obj) => obj.uri.value === uriValue);
+        let matchingInstance = this.storeCache[key].find(
+          (obj) => obj.uri.value === uriValue
+        );
         if (matchingInstance) return matchingInstance;
       }
       return undefined;
@@ -188,7 +209,9 @@ class StoreService extends Service {
     // Use a weak map to find which maps to update.
     const klass = classForModel(getOwner(this), model);
     if (!klass.rdfType)
-      console.error(`Tried to fetch all instances of ${model} but it has no @rdfType annotation.`);
+      console.error(
+        `Tried to fetch all instances of ${model} but it has no @rdfType annotation.`
+      );
 
     let rdfType = klass.rdfType;
     if (options?.rdfType) {
@@ -197,9 +220,9 @@ class StoreService extends Service {
 
     const sourceGraph = this.discoverDefaultGraphByType(klass, rdfType);
 
-    return this
-      .match(undefined, RDF("type"), rdfType, sourceGraph)
-      .map(({ subject }) => this.create(model, { uri: subject, rdfType }));
+    return this.match(undefined, RDF('type'), rdfType, sourceGraph).map(
+      ({ subject }) => this.create(model, { uri: subject, rdfType })
+    );
   }
 
   classForModel(model) {
@@ -217,7 +240,9 @@ class StoreService extends Service {
   async fetchGraphForType(model) {
     const klass = classForModel(getOwner(this), model);
     if (!klass.rdfType)
-      console.error(`Tried to fetch all instances of ${model} but it has no @rdfType annotation.`);
+      console.error(
+        `Tried to fetch all instances of ${model} but it has no @rdfType annotation.`
+      );
 
     const sourceGraph = this.discoverDefaultGraphByType(klass);
 
@@ -240,9 +265,17 @@ class StoreService extends Service {
     let discoveredSolidGraph = null;
 
     if (constructor.solid?.private)
-      discoveredSolidGraph = findTypeRegistrationInGraph(rdfType, this, this.privateTypeIndex);
+      discoveredSolidGraph = findTypeRegistrationInGraph(
+        rdfType,
+        this,
+        this.privateTypeIndex
+      );
     else
-      discoveredSolidGraph = findTypeRegistrationInGraph(rdfType, this, this.publicTypeIndex);
+      discoveredSolidGraph = findTypeRegistrationInGraph(
+        rdfType,
+        this,
+        this.publicTypeIndex
+      );
 
     // TODO: if a defaultStorageLocation was set, and the type was not
     // found in the type index, write the storage location the correct
@@ -256,14 +289,18 @@ class StoreService extends Service {
       ) {
         absoluteGraph = namedNode(constructor.solid.defaultStorageLocation);
       } else {
-        absoluteGraph = this.podBase && namedNode(`${this.podBase}${constructor.solid.defaultStorageLocation}`);
+        absoluteGraph =
+          this.podBase &&
+          namedNode(
+            `${this.podBase}${constructor.solid.defaultStorageLocation}`
+          );
       }
     }
 
     return discoveredSolidGraph || absoluteGraph || constructor.defaultGraph;
   }
 
-  graphForType = {}
+  graphForType = {};
   setGraphForType(type, graph) {
     this.graphForType[type] = graph;
   }
@@ -312,11 +349,14 @@ class StoreService extends Service {
 
 export function initialize(application) {
   const storeName = `service:${env.rdfStore.name}`;
-  application.register(storeName, StoreService, { singleton: true, instantiate: true });
-  application.inject("route", "store", storeName);
-  application.inject("controller", "store", storeName);
+  application.register(storeName, StoreService, {
+    singleton: true,
+    instantiate: true,
+  });
+  application.inject('route', 'store', storeName);
+  application.inject('controller', 'store', storeName);
 }
 
 export default {
-  initialize
+  initialize,
 };

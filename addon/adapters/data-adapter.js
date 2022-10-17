@@ -4,7 +4,7 @@ import { tracked } from '@glimmer/tracking';
 import DebugDataAdapter from '@ember/debug/data-adapter';
 import SemanticModel from '../models/semantic-model';
 import { updateEmberArray } from '../utils/array-helpers';
-import { A } from "@ember/array";
+import { A } from '@ember/array';
 import ArrayProxy from '@ember/array/proxy';
 
 /**
@@ -64,7 +64,7 @@ class SemanticDataAdapter extends DebugDataAdapter {
   @tracked
   containerDebugAdapter = null;
 
-  @service("store") store;
+  @service('store') store;
 
   recordsByTypeInEmberArr = {};
 
@@ -76,7 +76,6 @@ class SemanticDataAdapter extends DebugDataAdapter {
     this.store.addChangeListener((kind) => {
       this.updateRecordsByType(kind);
     });
-
   }
 
   /**
@@ -87,19 +86,19 @@ class SemanticDataAdapter extends DebugDataAdapter {
   */
   getModelTypes() {
     var self = this;
-    var containerDebugAdapter = this.get('containerDebugAdapter');
+    var containerDebugAdapter = this.containerDebugAdapter;
     var types;
 
     types = containerDebugAdapter.catalogEntriesByType('model');
 
     // New adapters return strings instead of classes
-    types = A(types).map(function(name) {
+    types = A(types).map(function (name) {
       return {
         klass: self._nameToClass(name),
-        name: name
+        name: name,
       };
     });
-    types = A(types).filter(function(type) {
+    types = A(types).filter(function (type) {
       return self.detect(type.klass);
     });
 
@@ -111,19 +110,19 @@ class SemanticDataAdapter extends DebugDataAdapter {
   }
 
   getRecords(type) {
-    const typeName =
-      this
-        .getModelTypes()
-        .find(({ klass }) => klass === type)
-        .name;
+    const typeName = this.getModelTypes().find(
+      ({ klass }) => klass === type
+    ).name;
 
     this.updateRecordsByType(typeName);
     return this.recordsByTypeInEmberArr[typeName];
   }
 
   updateRecordsByType(typeName) {
-    const records = this.get('store').storeCacheForModel(typeName);
-    const arrProxy = this.recordsByTypeInEmberArr[typeName] || ArrayProxy.create({ content: A() });
+    const records = this.store.storeCacheForModel(typeName);
+    const arrProxy =
+      this.recordsByTypeInEmberArr[typeName] ||
+      ArrayProxy.create({ content: A() });
 
     updateEmberArray(arrProxy, records);
     this.recordsByTypeInEmberArr[typeName] = arrProxy;
@@ -139,9 +138,11 @@ class SemanticDataAdapter extends DebugDataAdapter {
   */
   columnsForType(type, options) {
     options = options ? options : { limit: true };
-    const base = [{ name: "uri", desc: "URI" }];
+    const base = [{ name: 'uri', desc: 'URI' }];
     if (type.prototype && type.prototype.attributes) {
-      type.prototype.attributes.forEach((attr) => base.push({ name: attr, desc: attr }));
+      type.prototype.attributes.forEach((attr) =>
+        base.push({ name: attr, desc: attr })
+      );
     }
     if (options.limit) {
       return base.slice(0, MAX_TABLE_PROPERTIES);
@@ -162,10 +163,8 @@ class SemanticDataAdapter extends DebugDataAdapter {
     columns
       .map(({ name }) => name)
       .forEach((name) => {
-        if (name === "uri")
-          columnValues[name] = get(record, `${name}.value`);
-        else
-          columnValues[name] = get(record, name);
+        if (name === 'uri') columnValues[name] = get(record, `${name}.value`);
+        else columnValues[name] = get(record, name);
       });
 
     return columnValues;
@@ -174,10 +173,11 @@ class SemanticDataAdapter extends DebugDataAdapter {
   observeRecord(record, observer) {
     const self = this;
     const observers = this.observersByRecord[record] || [];
-    const newObserver = (updatedInstance) => observer(self.wrapRecord(updatedInstance));
+    const newObserver = (updatedInstance) =>
+      observer(self.wrapRecord(updatedInstance));
     observers.push(newObserver);
     record.addChangeListener(newObserver);
-    return function() {
+    return function () {
       for (let oldObserver of self.observersByRecord[record] || [])
         record.removeChangeListener(oldObserver);
     };
@@ -185,9 +185,9 @@ class SemanticDataAdapter extends DebugDataAdapter {
 }
 
 export default {
-  name: "data-adapter",
-  after: "rdf-store",
+  name: 'data-adapter',
+  after: 'rdf-store',
   initialize(application) {
     application.register('data-adapter:main', SemanticDataAdapter);
-  }
+  },
 };

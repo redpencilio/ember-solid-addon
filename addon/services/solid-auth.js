@@ -180,14 +180,32 @@ export default class AuthService extends Service {
     let webIdDoc = webId;
     if (webId) {
       await this.store.load(sym(webId).doc());
-      podBase = this.store.any(sym(webId), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
-      // Check if podBase is not undefined and webIdDoc is not the root domain
+
+      // Start with WebID and traverse upwards until we find a pim:Storage resource or a pim:Storage link response header.
       let previousWebIdDoc = webIdDoc;
-      while (!podBase && !this.store.any(webIdDoc, RDF('type'), LDP('BasicContainer'), sym(webIdDoc).doc()) && !webIdDoc.endsWith('://')) {
-        // Substring of webIdDoc leaving off the last slash and last directory.
-        previousWebIdDoc = webIdDoc;
-        webIdDoc = webIdDoc.substring(0, webIdDoc.lastIndexOf('/', webIdDoc.length - 2)) + '/';
-        podBase = this.store.any(sym(webIdDoc), SP('storage'), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF('type'), SP('Storage'), sym(webIdDoc).doc())?.value;
+      while (!podBase && !this.store.any(webIdDoc, RDF("type"), LDP("BasicContainer"), sym(webIdDoc).doc()) && !webIdDoc.endsWith("://")) {
+        // Check if the current resource is a pim:Storage resource
+        podBase = this.store.any(sym(webIdDoc), SP("storage"), undefined, sym(webIdDoc).doc())?.value || this.store.any(undefined, RDF("type"), SP("Storage"), sym(webIdDoc).doc())?.value;
+
+        // Otherwise, check if the current resource has a pim:Storage link response header.
+        if (!podBase) {
+          // Get response headers from the webIdDoc
+          const response = await fetch(webIdDoc, { method: 'HEAD' });
+          const linkHeader = response.headers.get('Link');
+          if (
+            linkHeader &&
+            linkHeader.includes('http://www.w3.org/ns/pim/space#Storage')
+          ) {
+            podBase = webIdDoc;
+          }
+        }
+
+        // Otherwise, traverse upwards
+        if (!podBase) {
+          // Prepare next iteration
+          previousWebIdDoc = webIdDoc;
+          webIdDoc = webIdDoc.substring(0, webIdDoc.lastIndexOf("/", webIdDoc.length - 2)) + "/";
+        }
       }
 
       if (!podBase) {

@@ -313,8 +313,6 @@ class StoreService extends Service {
 export function initialize(application) {
   const storeName = `service:${env.rdfStore.name}`;
   application.register(storeName, StoreService, { singleton: true, instantiate: true });
-  application.inject("route", "store", storeName);
-  application.inject("controller", "store", storeName);
 }
 
 export default {

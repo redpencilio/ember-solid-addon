@@ -5,7 +5,7 @@ It is a drop-in replacement for ember-data.
 
 # contents
  - [tutorial](#tutorial)
- - [how to](#how-to's)
+ - [how to](#how-to)
  - [reference](#reference)
  - [discussion](#discussion)
 ## Compatibility
@@ -95,7 +95,7 @@ export default class Author extends SemanticModel {
 Now we should be able to log in and see the Authors stored in our solidpod
 
 
-## how-to's
+## how-to
 
 ### model a semantic model
 ```js

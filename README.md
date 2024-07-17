@@ -233,7 +233,7 @@ export default class ApplicationRoute extends Route {
 ### semantic decorators
 
 
-#### `@rdfType(typeUri)`~
+#### `@rdfType(typeUri)`
 Marks a class as representing a specific RDF type. This decorator assigns an RDF type URI to the class, which is used when instances of the class are stored or retrieved from the RDF store.
 
 ```javascript
@@ -243,7 +243,7 @@ class MyModel extends SemanticModel {
 }
 ```
 
-#### `@defaultGraph(graphUri)`~
+#### `@defaultGraph(graphUri)`
 Specifies the default graph URI for all instances of the class. This is used to determine where in the RDF store the instances should be placed or retrieved from by default.
 
 ```javascript
@@ -253,7 +253,7 @@ class MyModel extends SemanticModel {
 }
 ```
 
-#### `@autosave(boolean)`~
+#### `@autosave(boolean)`
 Enables or disables automatic saving of instances to the RDF store upon changes. When set to `true`, any change to an instance its properties will automatically trigger an update in the RDF store.
 
 ```javascript
@@ -263,7 +263,7 @@ class MyModel extends SemanticModel {
 }
 ```
 
-#### `@solid(options)`~
+#### `@solid(options)`
 Configures the solid integration with the class. This decorator can be used to set up a model class for use with Solid data pods.
 
 ```javascript
@@ -273,7 +273,7 @@ class MyModel extends SemanticModel {
 }
 ```
 
-#### Property Decorators~
+#### Property Decorators
 The file also introduces a set of property decorators, which are used to define the properties of the model classes. These decorators specify the type of the property, how it relates to RDF predicates, and other options like whether the property is a relation to another model.
 
 - `@property(options)`: Generic property decorator to define a model property.
@@ -306,7 +306,7 @@ class MyModel extends SemanticModel {
 The `rdf-store` serves as the primary interface for interacting with Solid storage.
 It provides methods to interact with the data from a Solid pod.
 
-#### `create(model, options = {})`~
+#### `create(model, options = {})`
 - **Description**: Creates an instance of a model with a specific URI and saves it in the cache. If an instance with the same URI already exists in the cache, it returns the existing instance instead of creating a new one.
 - **Usage**: `storeService.create('modelName', { uri: 'resourceUri' });`
 - **Parameters**:
@@ -314,14 +314,14 @@ It provides methods to interact with the data from a Solid pod.
   - `options` ({uri: String}): Options including the URI of the resource.
 - **Returns**: An instance of the model.
 
-#### `storeCacheForModel(model)`~
+#### `storeCacheForModel(model)`
 - **Description**: Returns the cache for a specific model. If no cache exists for the model, it initializes an empty array for it.
 - **Usage**: `storeService.storeCacheForModel('modelName');`
 - **Parameters**:
   - `model` (String): The given model.
 - **Returns**: An array representing the cache for the specified model.
 
-#### `peekInstance(model, uri)`~
+#### `peekInstance(model, uri)`
 - **Description**: Searches the cache for an instance of a model by URI.
 - **Usage**: `storeService.peekInstance('modelName', 'resourceUri');`
 - **Parameters**:
@@ -329,7 +329,7 @@ It provides methods to interact with the data from a Solid pod.
   - `uri` (String): The URI of the instance.
 - **Returns**: The found instance or `undefined` if not found.
 
-#### `all(model, options)`~
+#### `all(model, options)`
 - **Description**: Returns all instances of a model (type), optionally filtered by RDF type.
 - **Usage**: `storeService.all('modelName', { rdfType: 'http://example.com/type' });`
 - **Parameters**:
@@ -337,14 +337,14 @@ It provides methods to interact with the data from a Solid pod.
   - `options` (Object): Options including the RDF type of the instances to return.
 - **Returns**: An array of model instances.
 
-#### `classForModel(model)`~
+#### `classForModel(model)`
 - **Description**: Looks up a model class by name.
 - **Usage**: `storeService.classForModel('modelName');`
 - **Parameters**:
   - `model` (String): Name of the model to lookup.
 - **Returns**: The class constructor for the specified model.
 
-#### `fetchGraphForType(model)`~
+#### `fetchGraphForType(model)`
 - **Description**: Fetches the graph for a specific model (type) from the Solid pod.
 - **Usage**: `await storeService.fetchGraphForType('modelName');`
 - **Parameters**:
@@ -366,21 +366,21 @@ It provides methods to interact with the data from a Solid pod.
   - `type` (String): The type to check.
 - **Returns**: The graph URI as a `NamedNode`.
 
-#### `getAutosaveForType(type)`~
+#### `getAutosaveForType(type)`
 - **Description**: Checks if a resource type needs to be autosaved.
 - **Usage**: `storeService.getAutosaveForType('typeUri');`
 - **Parameters**:
   - `type` (String): The type to check.
 - **Returns**: A boolean indicating whether the type should be autosaved.
 
-#### `addChangeListener(listener)`~
+#### `addChangeListener(listener)`
 - **Description**: Adds a change listener that will be notified of changes to the store.
 - **Usage**: `storeService.addChangeListener(listenerFunction);`
 - **Parameters**:
   - `listener` (callback): The function to be called when changes occur.
 - **Returns**: void.
 
-#### `removeChangeListener(listener)`~
+#### `removeChangeListener(listener)`
 - **Description**: Removes a previously registered change listener.
 - **Usage**: `storeService.removeChangeListener(listenerFunction);`
 - **Parameters**:
@@ -392,7 +392,7 @@ It provides methods to interact with the data from a Solid pod.
 
 The `solid-Auth` service used to log-in with solid and fetch profile-info and type-inde
 
-#### `restoreSession()`~
+#### `restoreSession()`
 
 - **Description**: Attempts to restore a Solid session from a previous login. If a session is already present, it returns that session. Otherwise, it tries to handle an incoming redirect from the Solid identity provider, restoring the session if one was initiated before. It also sets up the RDF store with the session and pod base information.
 
@@ -401,7 +401,7 @@ The `solid-Auth` service used to log-in with solid and fetch profile-info and ty
 
 - **Returns**: A `Promise` that resolves to the restored or current session.
 
-#### `ensureLogin()`~
+#### `ensureLogin()`
 - **Description**: Ensures that the user is logged in to their Solid pod. If the user is not logged in, it attempts to initiate the login process.
 - **Usage**: `await storeService.ensureLogin();`
 - **Parameters**: None.

@@ -15,7 +15,18 @@ const { namedNode } = rdflib;
  * @param {String} model Name of the model to lookup
  */
 function classForModel(owner, model) {
-  return owner.lookup(`model:${model}`);
+  if (!model || typeof model !== 'string') {
+    console.error("Invalid model name:", model);
+    throw new Error("Model name must be a non-empty string");
+  }
+
+
+  try {
+    return owner.lookup(`model:${model}`);
+  } catch (error) {
+    console.error("Error looking up model:", error);
+    throw error;
+  }
 }
 
 /**
@@ -75,10 +86,14 @@ class StoreService extends Service {
     this.store = new ForkableStore( { fetch: this.fetch.bind(this) } );
   }
 
+
   async fetch() {
     if( this.authSession && this.authSession.info && this.authSession.info.webId ) {
+      console.log('Auth session exists, using fetch with auth session');
       return await this.authSession.fetch(...arguments);
     } else {
+      console.log('No auth session, using default fetch');
+
       return await fetch( ...arguments );
     }
   }
@@ -88,13 +103,17 @@ class StoreService extends Service {
   addAll() { return this.store.addAll(...arguments); }
   removeStatements() { return this.store.removeStatements(...arguments); }
   removeMatches() { return this.store.removeMatches(...arguments); }
+  parse() { return this.store.parse(...arguments); }
+  allGraphs() { return this.store.allGraphs(); }
+  serializeDataWithAddAndDelGraph() { return this.store.serializeDataWithAddAndDelGraph(...arguments); }
   async load(source) { return await this.store.load(source); }
   async update(deletes, inserts) { return await this.store.update(deletes, inserts); }
   async persist() { return await this.store.persist(); }
-
+  async persistToTripleStore() { return await this.store.persistToTripleStore(); }
+  async loadFromTripleStore (source, body,constructResponseType ) { return await this.store.loadFromTripleStore(source,body, constructResponseType); }
   /**
    *
-   * Creates an instance of a model with a specific uri and saves it in the cache
+   * Creates an instance of a model with a specific uri and saves, it in the cache
    *
    * @param {String} model Model to create an instance of
    * @param {Object} options Options
@@ -176,7 +195,7 @@ class StoreService extends Service {
   /**
    *
    * Returns all instances of a model (type)
-   *
+   * 
    * @param {String} model The given model
    * @param {Object} options options
    * @param {String} options.rdfType The RDF type of the instances to return
@@ -194,9 +213,7 @@ class StoreService extends Service {
     if (options?.rdfType) {
       rdfType = options.rdfType;
     }
-
     const sourceGraph = this.discoverDefaultGraphByType(klass, rdfType);
-
     return this
       .match(undefined, RDF("type"), rdfType, sourceGraph)
       .map(({ subject }) => this.create(model, { uri: subject, rdfType }));
@@ -218,9 +235,15 @@ class StoreService extends Service {
     const klass = classForModel(getOwner(this), model);
     if (!klass.rdfType)
       console.error(`Tried to fetch all instances of ${model} but it has no @rdfType annotation.`);
-
     const sourceGraph = this.discoverDefaultGraphByType(klass);
-
+    if (klass.solid.constructUrl) {
+      try{
+      await this.loadFromTripleStore(klass.solid.constructUrl,sourceGraph, klass.solid.constructBody);
+      } catch (e) {
+        console.log(`Failed to fetch ${sourceGraph.value} from trippleStore`);
+        console.log(e);
+      }
+    }
     try {
       await this.load(sourceGraph);
     } catch (e) {
@@ -238,7 +261,6 @@ class StoreService extends Service {
    */
   discoverDefaultGraphByType(constructor, rdfType = constructor.rdfType) {
     let discoveredSolidGraph = null;
-
     if (constructor.solid?.private)
       discoveredSolidGraph = findTypeRegistrationInGraph(rdfType, this, this.privateTypeIndex);
     else
@@ -258,6 +280,13 @@ class StoreService extends Service {
       } else {
         absoluteGraph = this.podBase && namedNode(`${this.podBase}${constructor.solid.defaultStorageLocation}`);
       }
+    }else{
+      if(constructor.solid?.graph){
+        absoluteGraph = namedNode(constructor.solid.graph);
+      }
+    }
+    if(this.getGraphForType(constructor.modelName)){
+      return this.getGraphForType(constructor.modelName);
     }
 
     return discoveredSolidGraph || absoluteGraph || constructor.defaultGraph;
@@ -313,9 +342,12 @@ class StoreService extends Service {
 export function initialize(application) {
   const storeName = `service:${env.rdfStore.name}`;
   application.register(storeName, StoreService, { singleton: true, instantiate: true });
-  application.inject("route", "store", storeName);
-  application.inject("controller", "store", storeName);
+  
+  // application.inject("route", "store", storeName);
+  // application.inject("controller", "store", storeName);
 }
+
+
 
 export default {
   initialize

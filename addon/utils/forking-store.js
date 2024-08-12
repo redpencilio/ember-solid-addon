@@ -1,7 +1,7 @@
 import rdflib from 'rdflib';
 
 const { Fetcher, UpdateManager, namedNode, Statement } = rdflib;
-const BASE_GRAPH_STRING = "http://mu.semte.ch/libraries/rdf-store";
+const BASE_GRAPH_STRING = 'http://mu.semte.ch/libraries/rdf-store';
 
 /**
  * Yields the graph variant which contains triples to be added
@@ -39,7 +39,6 @@ function mergedGraphFor(graph) {
   return namedNode(`${base}?for=${graphQueryParam}`);
 }
 
-
 /**
  * Yields the `Statement` which is composed from the given `triple` and `graph`
  * @param {Object} triple an RDF triple
@@ -52,7 +51,6 @@ function mergedGraphFor(graph) {
 function statementInGraph(triple, graph) {
   return new Statement(triple.subject, triple.predicate, triple.object, graph);
 }
-
 
 /**
  * Informs the observers of the forking store about the `payload` being sent to the
@@ -67,12 +65,13 @@ function informObservers(payload, forkingStore) {
     try {
       forkingStore.observers[observerKey](payload);
     } catch (e) {
-      console.error(`Something went wrong during the callback of observer ${observerKey}`);
+      console.error(
+        `Something went wrong during the callback of observer ${observerKey}`
+      );
       console.error(e);
     }
   }
-};
-
+}
 
 /**
  * Triple store which models a local store in which the changes are present with each updating queries.
@@ -110,10 +109,43 @@ export default class ForkingStore {
     // Once this bug is fixed, this try/catch can be removed.
     // See https://forum.solidproject.org/t/requesting-access-as-ess-authenticated-application/5538/25?u=smessie
     try {
-      await this.fetcher.load(source, { withCredentials: false, method: 'OPTIONS' });
+      await this.fetcher.load(source, {
+        withCredentials: false,
+        method: 'OPTIONS',
+      });
     } catch (_) {}
 
-    await this.fetcher.load(source, { withCredentials: false, method: 'GET', force: true });
+    await this.fetcher.load(source, {
+      withCredentials: false,
+      method: 'GET',
+      force: true,
+    });
+  }
+
+  async loadFromTripleStore(source, graph, body) {
+    const fullBody = {
+      construct_query: body,
+      responseType: 'text/turtle',
+    };
+    const fetchOptions = {
+      method: 'POST',
+      headers: {},
+    };
+    fetchOptions.body = JSON.stringify(fullBody);
+    fetchOptions.headers['Content-Type'] = 'application/json';
+    try {
+      const response = await fetch(source, fetchOptions);
+      const triples = await response.text();
+      this.loadDataWithAddAndDelGraph(
+        triples,
+        graph,
+        null,
+        null,
+        'text/turtle'
+      );
+    } catch (error) {
+      console.error('Error fetching triples:', error);
+    }
   }
 
   /**
@@ -149,7 +181,7 @@ export default class ForkingStore {
     return {
       graph: rdflib.serialize(graph, this.graph, format),
       additions: rdflib.serialize(addGraphFor(graph), this.graph, format),
-      removals: rdflib.serialize(delGraphFor(graph), this.graph, format)
+      removals: rdflib.serialize(delGraphFor(graph), this.graph, format),
     };
   }
 
@@ -186,15 +218,46 @@ export default class ForkingStore {
    * @memberof {ForkingStore}
    */
   match(subject, predicate, object, graph) {
+    // log for debugging
+    console.log(
+      'matching:\n subject: ',
+      subject,
+      '\npredicate: ',
+      predicate,
+      '\nobject: ',
+      object,
+      '\ngraph: ',
+      graph
+    );
     if (graph) {
       const mainMatch = this.graph.match(subject, predicate, object, graph);
-      const addMatch = this.graph.match(subject, predicate, object, addGraphFor(graph));
-      const delMatch = this.graph.match(subject, predicate, object, delGraphFor(graph));
+      const addMatch = this.graph.match(
+        subject,
+        predicate,
+        object,
+        addGraphFor(graph)
+      );
+      const delMatch = this.graph.match(
+        subject,
+        predicate,
+        object,
+        delGraphFor(graph)
+      );
+      // log for debugging
+      console.log(
+        'mainMatch: ',
+        mainMatch,
+        '\naddMatch: ',
+        addMatch,
+        '\ndelMatch: ',
+        delMatch
+      );
       return [...mainMatch, ...addMatch]
         .filter((quad) => !delMatch.find((del) => this.equalTriples(del, quad))) // remove statments in delete graph
         .map((quad) => statementInGraph(quad, graph)) // map them to the requested graph
-        .reduce((acc, quad) => { // find uniques
-          if (!acc.find(accQuad => this.equalTriples(accQuad, quad))) {
+        .reduce((acc, quad) => {
+          // find uniques
+          if (!acc.find((accQuad) => this.equalTriples(accQuad, quad))) {
             acc.push(quad);
           }
           return acc;
@@ -202,6 +265,7 @@ export default class ForkingStore {
     } else {
       // TODO: this code path is normally unused in our cases,
       // implement it for debugging scenarios.
+      console.log('no graph, performing match on root graph');
 
       return this.graph.match(subject, predicate, object);
     }
@@ -215,25 +279,26 @@ export default class ForkingStore {
    * @returns {bool} true if equal else false
    */
   equalTriples(a, b) {
-    return a.subject.equals(b.subject) && a.predicate.equals(b.predicate) && a.object.equals(b.object);
+    return (
+      a.subject.equals(b.subject) &&
+      a.predicate.equals(b.predicate) &&
+      a.object.equals(b.object)
+    );
   }
 
   /**
    * Perform any match on the graph.
    */
   any(subject, predicate, object, graph) {
+    // console.log("any:\n subject: ", subject,"\npredicate: ", predicate, "\nobject: " ,object,"\ngraph: ", graph);
     const matches = this.match(subject, predicate, object, graph);
 
     if (matches.length > 0) {
       const firstMatch = matches[0];
-      if (!subject)
-        return firstMatch.subject;
-      if (!predicate)
-        return firstMatch.predicate;
-      if (!object)
-        return firstMatch.object;
-      if (!graph)
-        return firstMatch.graph;
+      if (!subject) return firstMatch.subject;
+      if (!predicate) return firstMatch.predicate;
+      if (!object) return firstMatch.object;
+      if (!graph) return firstMatch.graph;
       return true;
     } else {
       return undefined;
@@ -250,7 +315,6 @@ export default class ForkingStore {
     for (const ins of inserts) {
       this.graph.add(statementInGraph(ins, addGraphFor(ins.graph)));
       try {
-        console.log(statementInGraph(ins, delGraphFor(ins.graph)));
         this.graph.remove(statementInGraph(ins, delGraphFor(ins.graph)));
       } catch (e) {
         // this is okay!  the statement may not exist
@@ -271,7 +335,6 @@ export default class ForkingStore {
       } catch (e) {
         // this is okay!  the statement may not exist
         this.graph.add(statementInGraph(del, delGraphFor(del.graph)));
-
       }
     }
     informObservers({ deletes }, this);
@@ -292,11 +355,7 @@ export default class ForkingStore {
    * Returns a set of existing graphs in the local store.
    */
   allGraphs() {
-    const graphStatements =
-      this
-        .graph
-        .match()
-        .map(({ graph }) => graph.value);
+    const graphStatements = this.graph.match().map(({ graph }) => graph.value);
 
     return new Set(graphStatements);
   }
@@ -311,12 +370,16 @@ export default class ForkingStore {
       let url;
       try {
         url = new URL(graph);
-      } catch (e) { /* this may happen */ };
+      } catch (e) {
+        /* this may happen */
+      }
 
-      if (url
-        && (url.href.startsWith(`${BASE_GRAPH_STRING}/graphs/add`)
-          || url.href.startsWith(`${BASE_GRAPH_STRING}/graphs/del`))) {
-        const target = url.searchParams.get("for");
+      if (
+        url &&
+        (url.href.startsWith(`${BASE_GRAPH_STRING}/graphs/add`) ||
+          url.href.startsWith(`${BASE_GRAPH_STRING}/graphs/del`))
+      ) {
+        const target = url.searchParams.get('for');
         if (target) forGraphs.add(target);
       }
     }
@@ -335,18 +398,15 @@ export default class ForkingStore {
     const delSource = delGraphFor(graph);
     const addSource = addGraphFor(graph);
 
-    const baseContent =
-      this
-        .match(null, null, null, graph)
-        .map((statement) => statementInGraph(statement, mergedGraph));
-    const delContent =
-      this
-        .match(null, null, null, delSource)
-        .map((statement) => statementInGraph(statement, mergedGraph));
-    const addContent =
-      this
-        .match(null, null, null, addSource)
-        .map((statement) => statementInGraph(statement, mergedGraph));
+    const baseContent = this.match(null, null, null, graph).map((statement) =>
+      statementInGraph(statement, mergedGraph)
+    );
+    const delContent = this.match(null, null, null, delSource).map(
+      (statement) => statementInGraph(statement, mergedGraph)
+    );
+    const addContent = this.match(null, null, null, addSource).map(
+      (statement) => statementInGraph(statement, mergedGraph)
+    );
 
     // clear the graph
     this.graph.removeMatches(null, null, null, mergedGraph);
@@ -354,7 +414,9 @@ export default class ForkingStore {
     baseContent.forEach((statement) => this.graph.add(statement));
     // remove stuff
     delContent.forEach((statement) => {
-      try { this.graph.remove(statement); } catch (e) { };
+      try {
+        this.graph.remove(statement);
+      } catch (e) {}
     });
     // add stuff
     addContent.forEach((statement) => this.graph.add(statement));
@@ -368,24 +430,30 @@ export default class ForkingStore {
    * @memberof {ForkingStore}
    */
 
-  async pushGraphChanges(graph) {
-    const deletes =
-      this
-        .match(null, null, null, delGraphFor(graph))
-        .map((statement) => statementInGraph(statement, graph));
+  async pushGraphChanges(graph, usingTrippleStore = false) {
+    const deletes = this.match(null, null, null, delGraphFor(graph)).map(
+      (statement) => statementInGraph(statement, graph)
+    );
 
-    const inserts =
-      this
-        .match(null, null, null, addGraphFor(graph))
-        .map((statement) => statementInGraph(statement, graph));
+    const inserts = this.match(null, null, null, addGraphFor(graph)).map(
+      (statement) => statementInGraph(statement, graph)
+    );
 
     console.log(deletes);
-
-    try {
-      await this.update(deletes, inserts);
-    } finally {
-      this.removeMatches(null, null, null, delGraphFor(graph));
-      this.removeMatches(null, null, null, addGraphFor(graph));
+    if (usingTrippleStore) {
+      try {
+        await this.updateToTrippleStore(deletes, inserts, graph);
+      } finally {
+        this.removeMatches(null, null, null, delGraphFor(graph));
+        this.removeMatches(null, null, null, addGraphFor(graph));
+      }
+    } else {
+      try {
+        await this.update(deletes, inserts);
+      } finally {
+        this.removeMatches(null, null, null, delGraphFor(graph));
+        this.removeMatches(null, null, null, addGraphFor(graph));
+      }
     }
   }
 
@@ -395,10 +463,17 @@ export default class ForkingStore {
    */
   async persist() {
     return await Promise.all(
-      this
-        .changedGraphs()
+      this.changedGraphs()
         .map((graphString) => namedNode(graphString))
         .map((graph) => this.pushGraphChanges(graph))
+    );
+  }
+
+  async persistToTripleStore() {
+    return await Promise.all(
+      this.changedGraphs()
+        .map((graphString) => namedNode(graphString))
+        .map((graph) => this.pushGraphChanges(graph, true))
     );
   }
 
@@ -417,6 +492,58 @@ export default class ForkingStore {
     });
   }
 
+  updateToTrippleStore(deletes, inserts, graph) {
+    return new Promise((resolve, reject) => {
+      const deleteStatements = deletes
+        .map(
+          (d) =>
+            `<${d.subject.value}> <${d.predicate.value}> "${d.object.value}"`
+        )
+        .join(' .\n');
+      const insertStatements = inserts
+        .map(
+          (i) =>
+            `<${i.subject.value}> <${i.predicate.value}> "${i.object.value}"`
+        )
+        .join(' .\n');
+
+      const query = `
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        DELETE {
+          GRAPH ${graph} {
+            ${deleteStatements}
+          }
+        }
+        INSERT {
+          GRAPH ${graph} {
+            ${insertStatements}
+          }
+        }
+        WHERE {
+          GRAPH ${graph} {
+            ${deleteStatements}
+          }
+        }
+      `;
+      console.log('query: ', query);
+      fetch('parser/update/sparql', { //TODO: make this configurable
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ update_query: query }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            resolve();
+          } else {
+            reject(new Error('Failed to update the triple store'));
+          }
+        })
+        .catch((error) => reject(error));
+    });
+  }
+
   /**
    * Registers an observer, optionally with a key.  The observer will
    * be called with objects of the shape { deletes, inserts } for any
@@ -432,4 +559,4 @@ export default class ForkingStore {
   }
 }
 
-export { addGraphFor, delGraphFor }
+export { addGraphFor, delGraphFor };

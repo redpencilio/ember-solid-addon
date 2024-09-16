@@ -284,8 +284,7 @@ export default class ForkingStore {
    */
   removeMatches(subject, predicate, object, graph) {
     // TODO: this should go through forking methods
-    const matches = this.graph.match(subject, predicate, object, graph);
-    this.graph.removeStatements(matches);
+    this.graph.removeMany(subject, predicate, object, graph);
   }
 
   /**

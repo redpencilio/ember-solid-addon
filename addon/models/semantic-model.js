@@ -84,6 +84,50 @@ async function changeGraphTriples(entity, del, ins, options = {}) {
 }
 
 /**
+ * Gets all list items from an rdfList from the store.
+ *
+ * @param {Store} store Contains triples
+ * @param {NamedNode} head RDF term of the first cell
+ * @param {NamedNode} graph Graph containing cells
+ */
+function getRdfListCells( head, store, graph ) {
+  let nextHead = head;
+  let matches = [];
+
+  while( nextHead && !toNamedNode("rdf:nil").equals(nextHead) ) {
+    let nextQuad = store.match(nextHead, toNamedNode("rdf:rest"), undefined, graph)[0];
+    nextHead = nextQuad.object;
+    matches.push(nextQuad);
+  }
+
+  return matches;
+}
+
+function getRdfListQuads( head, store, graph ) {
+  return getRdfListCells( head, store, graph )
+    .flatMap( (quad) => store.match(
+      quad.subject, undefined, undefined, graph
+    ));
+}
+
+/**
+ * Gets all items from an rdfList from the store.
+ *
+ * @param {Store} store Contains triples
+ * @param {NamedNode} head RDF term of the first cell
+ * @param {NamedNode} graph Graph containing cells
+ */
+function getRdfListObjects( head, store, graph ) {
+  return getRdfListCells( head, store, graph )
+    .map( (quad) => store.match(
+      quad.subject,
+      toNamedNode("rdf:first"),
+      undefined,
+      graph
+    )[0].object);
+}
+
+/**
  *
  * Returns the object value for a property of an entity
  *
@@ -149,6 +193,9 @@ function calculatePropertyValue(target, propertyName) {
             .store
             .match(undefined, predicate, target.uri, sourceGraph)
             .map(({ subject }) => subject);
+      } else if( options.rdfList ) {
+        let listHead = target.store.match(target.uri, predicate, undefined, graph)[0]?.object;
+        matches = getRdfListObjects(listHead, target.store, graph);
       } else {
         matches =
           target
@@ -203,12 +250,50 @@ function calculatePredicateForProperty(entity, propertyName) {
 }
 
 /**
+ * Creates a set of statements to represent an array as an rdf:List.
+ *
+ * @param {NamedNode[]} arr List of uris that will be in the list
+ * @param {NamedNode} graph Target graph for the quad.
+ * @param options
+ * @param {boolean} options.noBlankNodes If true, create named nodes for the list.
+ * @return {Quad[]} List of quads representing the list, first being the
+ * head of the list.
+ */
+function makeRdfListFromArray(arr, graph, options) {
+  // [nn1, nn2, nn3]
+  // [Statement(_:1,rdf:first,nn1),Statement(_:1,rdf:rest,_:2),
+  //  Statement(_:2,rdf:first,nn2),Statement(_:2,rdf:rest,_:3),
+  //  Statement(_:3,rdf:first,nn3),Statement(_:3,rdf:rest,rdf:nil)]
+  let listStatements = [];
+  let lastListNode = toNamedNode("rdf:nil");
+
+  for( const arrValue of arr.reverse() ) {
+    let newListNode = options.noBlankNodes
+      ? new rdflib.NamedNode(`http://mu.semte.ch/vocabularies/ext/listNodes/${uuid()}`)
+      : rdflib.blankNode();
+    listStatements.unshift(
+      new Statement(newListNode, toNamedNode("rdf:first"), arrValue, graph)
+    );
+    listStatements.unshift(
+      new Statement(newListNode, toNamedNode("rdf:rest"), lastListNode, graph)
+    );
+    lastListNode = newListNode;
+  }
+
+  return listStatements;
+}
+
+/**
  *
  * Defines the setter and getter methods of a property
  *
  * @param {Object} options Options
  */
 function property(options = {}) {
+  if( options.type === "hasMany" && options.inverse && options.rdfList ) {
+    throw `Cannot use hasMany as rdfList with inverse in ${options}`;
+  }
+
   const predicateUri = options.predicate;
 
   return function(self, propertyName, descriptor) {
@@ -307,42 +392,84 @@ function property(options = {}) {
             }
             break;
           case "hasMany":
+            const isNull = value === null || value === undefined;
             value = value || []; // ensure the value is an array, even if
-            // null was supplied, this helps
-            // consumers further down the line
-            const newObjects = new Set(value);
-            const oldObjects = new Set(this[propertyName] || []);
+            if (options.rdfList) {
+              const store = options.store || this.store;
+              let listHead = store.match(
+                this.uri,
+                predicate,
+                undefined,
+                graph
+              )[0]?.object;
+              let statementsToRemove = getRdfListQuads(listHead, store, graph);
+              if (listHead) {
+                statementsToRemove.push(
+                  new Statement(this.uri, predicate, listHead, graph)
+                );
+              }
+              let statementsToAdd = [];
+              if (!isNull) {
+                statementsToAdd = makeRdfListFromArray(
+                  value.map((item) => item.uri),
+                  graph,
+                  { noBlankNodes: options.noBlankNodes }
+                );
+                // add reference from our object to the list
+                statementsToAdd.push(
+                  new Statement(
+                    this.uri,
+                    predicate,
+                    statementsToAdd.length
+                      ? statementsToAdd[0].subject
+                      : toNamedNode('rdf:nil'),
+                    graph
+                  )
+                );
+              }
 
-            let statementsToRemove = [];
-            let statementsToAdd = [];
+              changeGraphTriples( this, statementsToRemove, statementsToAdd )
+                .then((_uri, message, _response) => console.log(`Success updating: ${message}`))
+                .catch((message, uri, response) => sendAlert(message, { uri, message, response })); // TODO: revert property update and recover
 
-            if (!oldObjects) {
-              // remove all values if we haven't cached them
-              // TODO: this case is not supported for now
-              console.error("Not removing matches in remote store which might exist");
-              this.store.removeMatches(this.uri, predicate, undefined, graph);
+              // we don't do inverse relations for lists now, hence there's no invalidation
+            } else {
+              // null was supplied, this helps
+              // consumers further down the line
+              const newObjects = new Set(value);
+              const oldObjects = new Set(this[propertyName] || []);
+
+              let statementsToRemove = [];
+              let statementsToAdd = [];
+
+              if (!oldObjects) {
+                // remove all values if we haven't cached them
+                // TODO: this case is not supported for now
+                console.error("Not removing matches in remote store which might exist");
+                this.store.removeMatches(this.uri, predicate, undefined, graph);
+              }
+
+              const objectsToAdd = new Set(newObjects);
+              oldObjects.forEach((o) => objectsToAdd.delete(o));
+              const objectsToRemove = new Set(oldObjects);
+              newObjects.forEach((o) => objectsToRemove.delete(o));
+
+              objectsToRemove.forEach((obj) => {
+                statementsToRemove.push(new rdflib.Statement(this.uri, predicate, obj.uri, graph));
+              });
+              objectsToAdd.forEach((obj) => {
+                statementsToAdd.push(new rdflib.Statement(this.uri, predicate, obj.uri, graph));
+              });
+
+              changeGraphTriples(this, statementsToRemove, statementsToAdd)
+                .then((uri, message, response) => console.log(`Success updating: ${message}`))
+                .catch((message, uri, response) => sendAlert(message, { uri, message, response })); // TODO: revert property update and recover
+
+              // invalidate inverse relations
+              [...objectsToAdd, ...objectsToRemove].forEach((obj) => {
+                if (options.inverseProperty) updatePropertyValue(obj, options.inverseProperty);
+              });
             }
-
-            const objectsToAdd = new Set(newObjects);
-            oldObjects.forEach((o) => objectsToAdd.delete(o));
-            const objectsToRemove = new Set(oldObjects);
-            newObjects.forEach((o) => objectsToRemove.delete(o));
-
-            objectsToRemove.forEach((obj) => {
-              statementsToRemove.push(new rdflib.Statement(this.uri, predicate, obj.uri, graph));
-            });
-            objectsToAdd.forEach((obj) => {
-              statementsToAdd.push(new rdflib.Statement(this.uri, predicate, obj.uri, graph));
-            });
-
-            changeGraphTriples(this, statementsToRemove, statementsToAdd)
-              .then((uri, message, response) => console.log(`Success updating: ${message}`))
-              .catch((message, uri, response) => sendAlert(message, { uri, message, response })); // TODO: revert property update and recover
-
-            // invalidate inverse relations
-            [...objectsToAdd, ...objectsToRemove].forEach((obj) => {
-              if (options.inverseProperty) updatePropertyValue(obj, options.inverseProperty);
-            });
             break;
           case "term":
             setRelationObject(object);

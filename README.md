@@ -508,6 +508,14 @@ The `solid-Auth` service used to log-in with solid and fetch profile-info and ty
 
 ## discussion
 
+### Experimental Branch for Triplestore Support
+
+An experimental branch introduces support for using a triplestore alongside Solid Pods.
+
+For more details on the purpose and implementation, please refer to the [discussion section in the experimental branch](https://github.com/redpencilio/ember-solid/tree/experimental/triplestore?tab=readme-ov-file#further-changes-to-make-triplestore-integration-viable).
+
+
+
 ### Solid
 
 ## Contributing

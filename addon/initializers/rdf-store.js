@@ -113,7 +113,7 @@ class StoreService extends Service {
   async loadFromTripleStore (source, body,constructResponseType ) { return await this.store.loadFromTripleStore(source,body, constructResponseType); }
   /**
    *
-   * Creates an instance of a model with a specific uri and saves, it in the cache
+   * Creates an instance of a model with a specific uri and saves it in the cache
    *
    * @param {String} model Model to create an instance of
    * @param {Object} options Options
@@ -195,7 +195,7 @@ class StoreService extends Service {
   /**
    *
    * Returns all instances of a model (type)
-   * 
+   *
    * @param {String} model The given model
    * @param {Object} options options
    * @param {String} options.rdfType The RDF type of the instances to return

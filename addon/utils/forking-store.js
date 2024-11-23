@@ -218,17 +218,6 @@ export default class ForkingStore {
    * @memberof {ForkingStore}
    */
   match(subject, predicate, object, graph) {
-    // log for debugging
-    console.log(
-      'matching:\n subject: ',
-      subject,
-      '\npredicate: ',
-      predicate,
-      '\nobject: ',
-      object,
-      '\ngraph: ',
-      graph
-    );
     if (graph) {
       const mainMatch = this.graph.match(subject, predicate, object, graph);
       const addMatch = this.graph.match(
@@ -242,15 +231,6 @@ export default class ForkingStore {
         predicate,
         object,
         delGraphFor(graph)
-      );
-      // log for debugging
-      console.log(
-        'mainMatch: ',
-        mainMatch,
-        '\naddMatch: ',
-        addMatch,
-        '\ndelMatch: ',
-        delMatch
       );
       return [...mainMatch, ...addMatch]
         .filter((quad) => !delMatch.find((del) => this.equalTriples(del, quad))) // remove statments in delete graph
@@ -290,7 +270,6 @@ export default class ForkingStore {
    * Perform any match on the graph.
    */
   any(subject, predicate, object, graph) {
-    // console.log("any:\n subject: ", subject,"\npredicate: ", predicate, "\nobject: " ,object,"\ngraph: ", graph);
     const matches = this.match(subject, predicate, object, graph);
 
     if (matches.length > 0) {

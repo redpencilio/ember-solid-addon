@@ -133,6 +133,53 @@ export default class ourSemanticModel extends SemanticModel {
 }
 ```
 
+### Model a semantic model with triplestore support
+
+```js
+import SemanticModel, {
+  solid,
+  string,
+  integer,
+  hasMany,
+  belongsTo,
+} from 'ember-solid/models/semantic-model';
+
+@solid({
+  private: true, // is this private info for the user?
+  type: 'http://example.org/Book', // optional, defining NS is good enough if this is derived from the namespace.
+  namespace: 'http://example.org/', // define a namespace for properties.  http://schema.org/ is a good starting point for finding definitions.  No clue? use 'ext'.
+  graph: 'http://mu.semte.ch/application',
+  constructUrl: '/parser/construct/',
+  constructBody: ` // SPARQL construct query body
+    PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+    PREFIX ex: <http://example.org/>
+    CONSTRUCT { 
+      ?s ?p ?o .
+      ?s ex:age ?age .
+    }
+    WHERE { 
+      GRAPH <http://mu.semte.ch/application> { 
+        ?s ?p ?o .
+        ?s ex:publishedDate ?publishedDate .
+        BIND(xsd:dateTime(NOW()) AS ?currentDate)
+        BIND((YEAR(?currentDate) - YEAR(xsd:dateTime(?publishedDate))) AS ?age)
+      }
+    }
+  `,
+  constructResponseType: 'text/turtle',
+})
+export default class Book extends SemanticModel {
+  @string()
+  title;
+
+  @string()
+  creator;
+
+  @integer()
+  age;
+}
+```
+
 ### initiate the authentication service
 
 ```js
@@ -295,7 +342,12 @@ data pods.
   defaultStorageLocation: '/private/myLocation',
   private: true,
   type: 'http://example.com/Type',
-  namespace: 'http://example.com/'
+  namespace: 'http://example.com/',
+  graph: 'http://mu.semte.ch/application', // Graph URI
+  constructUrl: '/parser/construct/', // URL for constructing data
+  constructBody: ` 
+  `, // SPARQL construct query body
+  constructResponseType: 'text/turtle', // Response type for the construct query
 }) class MyModel extends SemanticModel {
   // Class definition
 }
@@ -432,6 +484,34 @@ It provides methods to interact with the data from a Solid pod.
 - **Parameters**:
   - `listener` (Function): The listener to remove.
 - **Returns**: void.
+
+#### `loadFromTripleStore(source, graph, body)`
+
+- **Description**: Loads data from a triplestore using a SPARQL construct query.
+- **Usage**: `await storeService.loadFromTripleStore('sourceUrl', 'graphUri', 'constructQuery');`
+- **Parameters**:
+  - `source` (String): The URL of the triplestore.
+  - `graph` (NamedNode): The graph URI where the data will be loaded.
+  - `body` (String): The SPARQL construct query body.
+- **Returns**: A promise that resolves when the data is loaded.
+
+#### `persistToTripleStore()`
+
+- **Description**: Persists the changes in the local store to the triplestore.
+- **Usage**: `await storeService.persistToTripleStore();`
+- **Parameters**: None.
+- **Returns**: A promise that resolves when the changes are persisted.
+
+#### `updateToTrippleStore(deletes, inserts, graph)`
+
+- **Description**: Updates the triplestore with the given delete and insert statements.
+- **Usage**: `await storeService.updateToTrippleStore(deletes, inserts, graph);`
+- **Parameters**:
+  - `deletes` (Array): An array of delete statements.
+  - `inserts` (Array): An array of insert statements.
+  - `graph` (NamedNode): The graph URI where the updates will be applied.
+- **Returns**: A promise that resolves when the updates are applied.
+
 
 ### solid-Auth
 

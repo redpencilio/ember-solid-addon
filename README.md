@@ -588,7 +588,22 @@ The `solid-Auth` service used to log-in with solid and fetch profile-info and ty
 
 ## discussion
 
-### Solid
+### Further Changes to Make Triplestore Integration Viable
+
+The following changes should be considered to make the integration of the triplestore viable:
+
+1. **Configuration Management**:
+   - **Human-Friendly Fields**: Ensure that the fields in the `@solid` decorator are human-friendly and straightforward. This includes using clear and descriptive names for the fields and providing examples in the documentation.
+   - **Enhanced Field Options**: Add more fields or improve existing fields in the `@solid` decorator to allow for more control.
+   - **Minimal Model Changes**: Ensure that using the triplestore or using a Solid Pod should change a model as little as possible.
+
+3. **Syncing Issues with Construct Queries**:
+   - **Data Consistency**: Ensure that the data fetched using construct queries is consistent with the data model used in the application. This may involve validating the data and handling any differences.
+   - **Conflict Resolution**: Implement strategies to handle cases where the data in the triplestore has changed since it was last fetched, causing changes to be made on old data.
+
+4. **Using the Triplestore Alongside Solid Pods**:
+   - **Hybrid Data Storage**: Implement a hybrid data storage approach where some data is stored in the Solid Pod and other data is stored in the triplestore.
+   - **Data Synchronization**: Develop mechanisms to synchronize data between the Solid Pod and the triplestore.
 
 ## Contributing
 

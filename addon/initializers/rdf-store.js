@@ -240,7 +240,7 @@ class StoreService extends Service {
       try{
       await this.loadFromTripleStore(klass.solid.constructUrl,sourceGraph, klass.solid.constructBody);
       } catch (e) {
-        console.log(`Failed to fetch ${sourceGraph.value} from trippleStore`);
+        console.log(`Failed to fetch ${sourceGraph.value} from tripleStore`);
         console.log(e);
       }
     }
@@ -342,7 +342,7 @@ class StoreService extends Service {
 export function initialize(application) {
   const storeName = `service:${env.rdfStore.name}`;
   application.register(storeName, StoreService, { singleton: true, instantiate: true });
-  
+
   // application.inject("route", "store", storeName);
   // application.inject("controller", "store", storeName);
 }

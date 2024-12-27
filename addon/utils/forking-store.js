@@ -1,7 +1,7 @@
 import rdflib from 'rdflib';
 
 const { Fetcher, UpdateManager, namedNode, Statement } = rdflib;
-const BASE_GRAPH_STRING = 'http://mu.semte.ch/libraries/rdf-store';
+const BASE_GRAPH_STRING = "http://mu.semte.ch/libraries/rdf-store";
 
 /**
  * Yields the graph variant which contains triples to be added
@@ -65,9 +65,7 @@ function informObservers(payload, forkingStore) {
     try {
       forkingStore.observers[observerKey](payload);
     } catch (e) {
-      console.error(
-        `Something went wrong during the callback of observer ${observerKey}`
-      );
+      console.error(`Something went wrong during the callback of observer ${observerKey}`);
       console.error(e);
     }
   }
@@ -109,10 +107,7 @@ export default class ForkingStore {
     // Once this bug is fixed, this try/catch can be removed.
     // See https://forum.solidproject.org/t/requesting-access-as-ess-authenticated-application/5538/25?u=smessie
     try {
-      await this.fetcher.load(source, {
-        withCredentials: false,
-        method: 'OPTIONS',
-      });
+      await this.fetcher.load(source, { withCredentials: false, method: 'OPTIONS' });
     } catch (_) {}
 
     await this.fetcher.load(source, {
@@ -181,7 +176,7 @@ export default class ForkingStore {
     return {
       graph: rdflib.serialize(graph, this.graph, format),
       additions: rdflib.serialize(addGraphFor(graph), this.graph, format),
-      removals: rdflib.serialize(delGraphFor(graph), this.graph, format),
+      removals: rdflib.serialize(delGraphFor(graph), this.graph, format)
     };
   }
 
@@ -334,7 +329,11 @@ export default class ForkingStore {
    * Returns a set of existing graphs in the local store.
    */
   allGraphs() {
-    const graphStatements = this.graph.match().map(({ graph }) => graph.value);
+    const graphStatements =
+      this
+        .graph
+        .match()
+        .map(({ graph }) => graph.value);
 
     return new Set(graphStatements);
   }
@@ -349,9 +348,7 @@ export default class ForkingStore {
       let url;
       try {
         url = new URL(graph);
-      } catch (e) {
-        /* this may happen */
-      }
+      } catch (e) { /* this may happen */ };
 
       if (
         url &&
@@ -377,15 +374,18 @@ export default class ForkingStore {
     const delSource = delGraphFor(graph);
     const addSource = addGraphFor(graph);
 
-    const baseContent = this.match(null, null, null, graph).map((statement) =>
-      statementInGraph(statement, mergedGraph)
-    );
-    const delContent = this.match(null, null, null, delSource).map(
-      (statement) => statementInGraph(statement, mergedGraph)
-    );
-    const addContent = this.match(null, null, null, addSource).map(
-      (statement) => statementInGraph(statement, mergedGraph)
-    );
+    const baseContent =
+      this
+        .match(null, null, null, graph)
+        .map((statement) => statementInGraph(statement, mergedGraph));
+    const delContent =
+      this
+        .match(null, null, null, delSource)
+        .map((statement) => statementInGraph(statement, mergedGraph));
+    const addContent =
+      this
+        .match(null, null, null, addSource)
+        .map((statement) => statementInGraph(statement, mergedGraph));
 
     // clear the graph
     this.graph.removeMatches(null, null, null, mergedGraph);
@@ -393,9 +393,7 @@ export default class ForkingStore {
     baseContent.forEach((statement) => this.graph.add(statement));
     // remove stuff
     delContent.forEach((statement) => {
-      try {
-        this.graph.remove(statement);
-      } catch (e) {}
+      try { this.graph.remove(statement); } catch (e) { };
     });
     // add stuff
     addContent.forEach((statement) => this.graph.add(statement));
@@ -409,7 +407,7 @@ export default class ForkingStore {
    * @memberof {ForkingStore}
    */
 
-  async pushGraphChanges(graph, usingTrippleStore = false) {
+  async pushGraphChanges(graph, usingTripleStore = false) {
     const deletes = this.match(null, null, null, delGraphFor(graph)).map(
       (statement) => statementInGraph(statement, graph)
     );
@@ -419,9 +417,9 @@ export default class ForkingStore {
     );
 
     console.log(deletes);
-    if (usingTrippleStore) {
+    if (usingTripleStore) {
       try {
-        await this.updateToTrippleStore(deletes, inserts, graph);
+        await this.updateToTripleStore(deletes, inserts, graph);
       } finally {
         this.removeMatches(null, null, null, delGraphFor(graph));
         this.removeMatches(null, null, null, addGraphFor(graph));
@@ -442,7 +440,8 @@ export default class ForkingStore {
    */
   async persist() {
     return await Promise.all(
-      this.changedGraphs()
+      this
+        .changedGraphs()
         .map((graphString) => namedNode(graphString))
         .map((graph) => this.pushGraphChanges(graph))
     );
@@ -471,7 +470,7 @@ export default class ForkingStore {
     });
   }
 
-  updateToTrippleStore(deletes, inserts, graph) {
+  updateToTripleStore(deletes, inserts, graph) {
     return new Promise((resolve, reject) => {
       const deleteStatements = deletes
         .map(

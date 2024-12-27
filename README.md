@@ -502,10 +502,10 @@ It provides methods to interact with the data from a Solid pod.
 - **Parameters**: None.
 - **Returns**: A promise that resolves when the changes are persisted.
 
-#### `updateToTrippleStore(deletes, inserts, graph)`
+#### `updateToTripleStore(deletes, inserts, graph)`
 
 - **Description**: Updates the triplestore with the given delete and insert statements.
-- **Usage**: `await storeService.updateToTrippleStore(deletes, inserts, graph);`
+- **Usage**: `await storeService.updateToTripleStore(deletes, inserts, graph);`
 - **Parameters**:
   - `deletes` (Array): An array of delete statements.
   - `inserts` (Array): An array of insert statements.
